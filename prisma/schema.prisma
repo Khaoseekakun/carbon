@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customers {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  email             String              @unique
+  password          String?
+  phone             String?
+  address           String?
+  city              String?
+  state             String?
+  zipCode           String?
+  country           String?
+  isActive          Boolean             @default(true)
+  isVerified        Boolean             @default(false)
+  lastLogin         DateTime?
+  profilePicture    String?
+  HistoryCalculator HistoryCalculator[]
+
+  organizationId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org_adminOf  Organization[] @relation("OrganizationAdmins")
+  org_memberOf Organization[] @relation("OrganizationMembers")
+
+  @@map("customers")
+}
+
+model HistoryCalculator {
+  id          Int    @id @default(autoincrement())
+  customerId  Int
+  calculation String
+  result      Float
+
+  customer Customers @relation(fields: [customerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("history_calculator")
+}
+
+model Organization {
+  id          Int         @id @default(autoincrement())
+  org_name    String
+  org_email   String      @unique
+  org_phone   String?
+  org_address String?
+  org_city    String?
+  org_state   String?
+  org_zipCode String?
+  org_country String?
+  org_logo    String?
+  org_admins  Customers[] @relation("OrganizationAdmins")
+  org_members Customers[] @relation("OrganizationMembers")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("organizations")
+}
