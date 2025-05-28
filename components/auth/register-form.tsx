@@ -128,7 +128,7 @@ export default function RegisterForm() {
 
     const handleNext = async () => {
 
-        if (currentStep == 1 && !registerType) {
+        if (currentStep == 0 && !registerType) {
 
             toast({
                 title: "จำเป็น",
@@ -732,7 +732,7 @@ export default function RegisterForm() {
 
                 {renderStep()}
 
-                <div className="flex justify-between mt-8">
+                <div className={`flex ${currentStep == 0 ? "justify-end" : "justify-between"} mt-8`}>
                     {
                         currentStep != 0 && (
                             <Button
