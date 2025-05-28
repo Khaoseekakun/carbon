@@ -74,7 +74,7 @@ export default function RegisterForm() {
     const { toast } = useToast();
 
     // register select
-    const [registerType, setRegisterType] = useState<0 | 1 | null>(null)
+    const [registerType, setRegisterType] = useState<1 | 2 | null>(null)
 
     // Person 
     const [username, setUsername] = useState("")
@@ -121,7 +121,7 @@ export default function RegisterForm() {
         },
     });
 
-    const registrationType = form.watch('registrationType');
+    const registrationType = registerType == 1 ? "person" : "org"
 
     const totalSteps = registrationType === 'person' ? 5 : 5;
     const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -138,14 +138,38 @@ export default function RegisterForm() {
         }
 
 
-        const fields = getFieldsForCurrentStep();
-        const isValid = await form.trigger(
-            fields as Parameters<typeof form.trigger>[0]
-        );
+        // const fields = getFieldsForCurrentStep();
+        // const isValid = await form.trigger(
+        //     fields as Parameters<typeof form.trigger>[0]
+        // );
 
-        if (isValid) {
-            setCurrentStep(prev => Math.min(prev + 1, totalSteps - 1));
+        if (currentStep == 1) {
+            if (registerType == 1) {
+                if (!username || !password || !email || !passwordC) {
+                    return toast({
+                        title: "คำแนะนำ",
+                        description: "โปรดกรอกข้อมูลให้ครบถ้วน",
+                        color: "#ff5151"
+                    });
+                }
+
+                if(password != passwordC){
+
+                    return toast({
+                        title: "คำแนะนำ",
+                        description: "รหัสผ่านไม่ตรงกัน",
+                        color: "#ff5151"
+                    });
+                }
+            } else {
+
+            }
         }
+
+
+
+
+        setCurrentStep(prev => Math.min(prev + 1, totalSteps - 1));
     };
 
     const handleBack = () => {
@@ -208,12 +232,12 @@ export default function RegisterForm() {
                                         <div className='w-6/12'>
                                             <Card
                                                 key={'person'}
-                                                className={`${registerType == 0 ? "border-2 border-green-500" : "border border-green-100"} dark:border-green-900/30 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition`}
+                                                className={`${registerType == 1 ? "border-2 border-green-500" : "border border-green-100"} dark:border-green-900/30 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition`}
                                                 onClick={() => {
-                                                    if (registerType == 0) {
+                                                    if (registerType == 1) {
                                                         setRegisterType(null)
                                                     } else {
-                                                        setRegisterType(0)
+                                                        setRegisterType(1)
                                                     }
                                                 }}
                                             >
@@ -229,12 +253,12 @@ export default function RegisterForm() {
                                         <div className='w-6/12'>
                                             <Card
                                                 key={'org'}
-                                                className={`${registerType == 1 ? "border-2 border-green-500" : "border border-green-100"} dark:border-green-900/30 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition`}
+                                                className={`${registerType == 2 ? "border-2 border-green-500" : "border border-green-100"} dark:border-green-900/30 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition`}
                                                 onClick={() => {
-                                                    if (registerType == 1) {
+                                                    if (registerType == 2) {
                                                         setRegisterType(null)
                                                     } else {
-                                                        setRegisterType(1)
+                                                        setRegisterType(2)
                                                     }
                                                 }}
                                             >
