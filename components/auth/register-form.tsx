@@ -27,27 +27,25 @@ const registerSchema = z.object({
     registrationType: z.enum(['person', 'organization']),
 
     // Person registration
-    name: z.string().min(2, 'ชื่อต้องมีอย่างน้อย 2 ตัวอักษร').optional(),
-    email: z.string().email('กรุณากรอกอีเมลให้ถูกต้อง').optional(),
-    password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร').optional(),
-    confirmPassword: z.string().optional(),
-    phone: z.string().min(10, 'เบอร์โทรศัพท์ไม่ถูกต้อง').optional(),
-    address: z.string().min(1, 'กรุณากรอกที่อยู่').optional(),
-    city: z.string().min(1, 'กรุณากรอกเมือง').optional(),
-    state: z.string().min(1, 'กรุณากรอกจังหวัด').optional(),
-    zipCode: z.string().min(5, 'รหัสไปรษณีย์ไม่ถูกต้อง').optional(),
-    profilePicture: z.any().optional(),
-    organizationId: z.string().optional(),
-    role: z.enum(['admin', 'member']).optional(),
+    name: z.string().min(2, 'ชื่อต้องมีอย่างน้อย 2 ตัวอักษร'),
+    email: z.string().email('กรุณากรอกอีเมลให้ถูกต้อง'),
+    password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
+    confirmPassword: z.string(),
+    phone: z.string().min(10, 'เบอร์โทรศัพท์ไม่ถูกต้อง'),
+    address: z.string().min(1, 'กรุณากรอกที่อยู่'),
+    city: z.string().min(1, 'กรุณากรอกเมือง'),
+    state: z.string().min(1, 'กรุณากรอกจังหวัด'),
+    zipCode: z.string().min(5, 'รหัสไปรษณีย์ไม่ถูกต้อง'),
+    organizationId: z.string(),
 
     // Organization registration
-    org_name: z.string().min(2, 'ชื่อองค์กรต้องมีอย่างน้อย 2 ตัวอักษร').optional(),
-    org_email: z.string().email('กรุณากรอกอีเมลให้ถูกต้อง').optional(),
-    org_phone: z.string().min(10, 'เบอร์โทรศัพท์ไม่ถูกต้อง').optional(),
-    org_address: z.string().min(1, 'กรุณากรอกที่อยู่').optional(),
-    org_city: z.string().min(1, 'กรุณากรอกเมือง').optional(),
-    org_state: z.string().min(1, 'กรุณากรอกจังหวัด').optional(),
-    org_zipCode: z.string().min(5, 'รหัสไปรษณีย์ไม่ถูกต้อง').optional(),
+    org_name: z.string().min(2, 'ชื่อองค์กรต้องมีอย่างน้อย 2 ตัวอักษร'),
+    org_email: z.string().email('กรุณากรอกอีเมลให้ถูกต้อง'),
+    org_phone: z.string().min(10, 'เบอร์โทรศัพท์ไม่ถูกต้อง'),
+    org_address: z.string().min(1, 'กรุณากรอกที่อยู่'),
+    org_city: z.string().min(1, 'กรุณากรอกเมือง'),
+    org_state: z.string().min(1, 'กรุณากรอกจังหวัด'),
+    org_zipCode: z.string().min(5, 'รหัสไปรษณีย์ไม่ถูกต้อง'),
     org_logo: z.any().optional(),
     org_admins: z.array(z.string()).optional(),
     org_members: z.array(z.string()).optional(),
@@ -74,6 +72,9 @@ export default function RegisterForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const { toast } = useToast();
+
+    // register select
+    const [registerType, setRegisterType] = useState<0 | 1 | null>(null)
 
     // Person 
     const [username, setUsername] = useState("")
@@ -126,6 +127,17 @@ export default function RegisterForm() {
     const progress = ((currentStep + 1) / totalSteps) * 100;
 
     const handleNext = async () => {
+
+        if (currentStep == 1 && !registerType) {
+
+            toast({
+                title: "จำเป็น",
+                description: "โปรดเลือกรูปแบบการสมัคร",
+            });
+            return;
+        }
+
+
         const fields = getFieldsForCurrentStep();
         const isValid = await form.trigger(
             fields as Parameters<typeof form.trigger>[0]
@@ -192,24 +204,50 @@ export default function RegisterForm() {
                             <FormItem className="space-y-3">
                                 <FormLabel>เลือกประเภทการสมัคร</FormLabel>
                                 <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex flex-col space-y-1"
-                                    >
-                                        <FormItem className="flex items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="person" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">บุคคล</FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="organization" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">องค์กร</FormLabel>
-                                        </FormItem>
-                                    </RadioGroup>
+                                    <div className='flex flex-row gap-3'>
+                                        <div className='w-6/12'>
+                                            <Card
+                                                key={'person'}
+                                                className={`${registerType == 0 ? "border-2 border-green-500" : "border border-green-100"} dark:border-green-900/30 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition`}
+                                                onClick={() => {
+                                                    if (registerType == 0) {
+                                                        setRegisterType(null)
+                                                    } else {
+                                                        setRegisterType(0)
+                                                    }
+                                                }}
+                                            >
+                                                <CardContent className="p-4 flex items-center space-x-4">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                                                            บุคคล
+                                                        </h3>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                        <div className='w-6/12'>
+                                            <Card
+                                                key={'org'}
+                                                className={`${registerType == 1 ? "border-2 border-green-500" : "border border-green-100"} dark:border-green-900/30 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition`}
+                                                onClick={() => {
+                                                    if (registerType == 1) {
+                                                        setRegisterType(null)
+                                                    } else {
+                                                        setRegisterType(1)
+                                                    }
+                                                }}
+                                            >
+                                                <CardContent className="p-4 flex items-center space-x-4">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                                                            องค์กร
+                                                        </h3>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -560,9 +598,9 @@ export default function RegisterForm() {
                                     key={org.id}
                                     className={`${org_select == org.id ? "border-2 border-green-500" : "border border-green-100"} dark:border-green-900/30 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition`}
                                     onClick={() => {
-                                        if(org.id == org_select){
+                                        if (org.id == org_select) {
                                             setOrg_select(null)
-                                        }else{
+                                        } else {
                                             setOrg_select(org.id)
                                         }
                                     }}
@@ -695,14 +733,18 @@ export default function RegisterForm() {
                 {renderStep()}
 
                 <div className="flex justify-between mt-8">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleBack}
-                        disabled={currentStep === 0}
-                    >
-                        ย้อนกลับ
-                    </Button>
+                    {
+                        currentStep != 0 && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleBack}
+                                disabled={currentStep === 0}
+                            >
+                                ย้อนกลับ
+                            </Button>
+                        )
+                    }
                     {currentStep === totalSteps - 1 ? (
                         <Button
                             type="submit"
@@ -710,15 +752,17 @@ export default function RegisterForm() {
                         >
                             ยืนยันการสมัคร
                         </Button>
-                    ) : (
-                        <Button
-                            type="button"
-                            onClick={handleNext}
-                            className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-                        >
-                            ถัดไป
-                        </Button>
-                    )}
+                    ) :
+
+                        (
+                            <Button
+                                type="button"
+                                onClick={handleNext}
+                                className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+                            >
+                                ถัดไป
+                            </Button>
+                        )}
                 </div>
             </form>
         </Form>
