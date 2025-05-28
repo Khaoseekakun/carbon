@@ -2,15 +2,22 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Leaf, Menu, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Leaf, LoaderCircle, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-
+import { useSession } from 'next-auth/react';
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(false)
+  }, [session])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,11 +37,10 @@ const Header = () => {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm'
-          : 'bg-transparent'
-      }`}
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled
+        ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm'
+        : 'bg-transparent'
+        }`}
     >
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
@@ -48,18 +54,29 @@ const Header = () => {
             <Link
               key={item.name}
               href={item.href}
-              className={`text-sm font-medium transition-colors ${
-                pathname === item.href
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400'
-              }`}
+              className={`text-sm font-medium transition-colors ${pathname === item.href
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400'
+                }`}
             >
               {item.name}
             </Link>
           ))}
-          <Button asChild className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
-            <Link href="/calculator">Calculate Now</Link>
-          </Button>
+          {
+            session ? loading == true ? (
+              <LoaderCircle className="animate-spin h-6 w-6 text-primary my-auto" />
+            ) : (
+              <Button asChild className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
+                <Link href="/calculator">คำนวณตอนนี้</Link>
+              </Button>
+            ) : (
+              <Button asChild className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
+                <Link href="/auth/signin">คำนวณตอนนี้</Link>
+              </Button>
+            )
+
+          }
+
           <ThemeToggle />
         </nav>
 
@@ -84,23 +101,40 @@ const Header = () => {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`text-base font-medium transition-colors py-2 ${
-                  pathname === item.href
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-gray-700 dark:text-gray-200'
-                }`}
+                className={`text-base font-medium transition-colors py-2 ${pathname === item.href
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-gray-700 dark:text-gray-200'
+                  }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
-            <Button 
-              asChild 
-              className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 w-full mt-4"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Link href="/calculator">Calculate Now</Link>
-            </Button>
+            {
+              session ? loading == true ? (
+                <LoaderCircle className="animate-spin h-6 w-6 text-primary my-auto" />
+              ) : (
+                <>
+                  <Button
+                    asChild
+                    className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 w-full mt-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Link href="/calculator">คำนวณตอนนี้</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    asChild
+                    className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 w-full mt-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Link href="/auth/signin">คำนวณตอนนี้</Link>
+                  </Button>
+                </>
+              )
+            }
           </div>
         </div>
       )}
