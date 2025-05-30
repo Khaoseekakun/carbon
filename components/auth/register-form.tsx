@@ -274,6 +274,7 @@ export default function RegisterForm() {
                                 actionLabel: "ปิด"
                             })
 
+                            setRegSuccess(true)
                             setModalOpen(true)
                         }
                     }
