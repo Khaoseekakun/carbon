@@ -17,6 +17,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
+import axios from 'axios';
+import { CustomAlertDialog } from '../ui/alert-dialog';
 
 const loginSchema = z.object({
   email: z.string().email('กรุณากรอกอีเมลให้ถูกต้อง'),
@@ -25,7 +28,19 @@ const loginSchema = z.object({
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [selected, setSelected] = useState('person');
   const { toast } = useToast();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState<{
+    type?: "success" | "info" | "warning" | "error"
+    title?: string;
+    description?: string;
+    actionLabel?: string
+  }>({})
+
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -35,15 +50,42 @@ export default function LoginForm() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
+  async function onSubmit() {
     try {
       // TODO: Implement login logic
-      console.log(values);
-      toast({
-        title: "เข้าสู่ระบบสำเร็จ",
-        description: "ยินดีต้อนรับกลับมา",
-      });
+      const login_res = await axios.post(`/api/oauth/login`, {
+        loginType: selected,
+        email: email,
+        password: password
+      }, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+
+      if (login_res.data) {
+        if (login_res.data.status == true) {
+          setModalData({
+            actionLabel: "ตกลง",
+            description: login_res.data.message,
+            type: 'success',
+            title: "สำเร็จ",
+          })
+          setModalOpen(true)
+        } else {
+
+          setModalData({
+            actionLabel: "ตกลง",
+            description: login_res.data.message,
+            type: 'error',
+            title: "ผิดพลาด",
+          })
+          setModalOpen(true)
+        }
+      }
+
     } catch (error) {
+      console.log(error)
       toast({
         title: "เกิดข้อผิดพลาด",
         description: "ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง",
@@ -52,20 +94,48 @@ export default function LoginForm() {
     }
   }
 
+
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <>
+      <CustomAlertDialog
+        type={modalData.type}
+        title={modalData.title ?? "Alert"}
+        description={modalData.description}
+        open={modalOpen}
+        actionLabel={modalData.actionLabel}
+        showCancel={false}
+        onAction={(() => {
+          setModalOpen(false)
+          window.location.reload()
+        })}
+      />
+      <Form {...form}>
+
+        <Select value={selected} onValueChange={setSelected}>
+          <SelectTrigger>
+            <SelectValue placeholder="เลือกประเภทการเข้าสู่ระบบ" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="person">บุคคล</SelectItem>
+            <SelectItem value="org">องค์กร</SelectItem>
+          </SelectContent>
+        </Select>
+
         <FormField
-          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
               <FormLabel>อีเมล</FormLabel>
               <FormControl>
-                <Input 
-                  type="email" 
-                  placeholder="กรอกอีเมลของคุณ" 
-                  {...field} 
+                <Input
+                  type="email"
+                  placeholder="กรอกอีเมลของคุณ"
+                  {...field}
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -74,7 +144,6 @@ export default function LoginForm() {
         />
 
         <FormField
-          control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
@@ -85,6 +154,10 @@ export default function LoginForm() {
                     type={showPassword ? "text" : "password"}
                     placeholder="กรอกรหัสผ่านของคุณ"
                     {...field}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                    }}
                   />
                   <button
                     type="button"
@@ -113,12 +186,15 @@ export default function LoginForm() {
           </Link>
         </div>
 
-        <Button 
-          type="submit" 
-          className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-        >
-          เข้าสู่ระบบ
-        </Button>
+        <div onClick={() => { onSubmit() }}>
+          <Button
+            type="button"
+            className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+          >
+            เข้าสู่ระบบ
+          </Button>
+        </div>
+
 
         <div className="text-center text-sm text-gray-600 dark:text-gray-400">
           ยังไม่มีบัญชี?{" "}
@@ -129,7 +205,7 @@ export default function LoginForm() {
             สมัครสมาชิก
           </Link>
         </div>
-      </form>
-    </Form>
+      </Form>
+    </>
   );
 }
