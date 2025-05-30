@@ -22,6 +22,8 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Organization } from '@/lib/generated/prisma';
 import axios from "axios"
+import { CustomAlertDialog } from '../ui/alert-dialog';
+import { title } from 'node:process';
 const registerSchema = z.object({
     // Step 0
     registrationType: z.enum(['person', 'organization']),
@@ -91,6 +93,9 @@ export default function RegisterForm() {
     const [loadOrg, setLoadOrg] = useState(false)
     const [loadOrgError, setLoadOrgError] = useState("")
     const [org_select, setOrg_select] = useState<Number | null>(null)
+    const [privacy, setPrivacy] = useState(false)
+    const [policy, setPolicy] = useState(false)
+    const [regSuccess, setRegSuccess] = useState(false)
 
     useEffect(() => {
         (async () => {
@@ -125,81 +130,166 @@ export default function RegisterForm() {
 
     const totalSteps = registrationType === 'person' ? 5 : 5;
     const progress = ((currentStep + 1) / totalSteps) * 100;
+    const [nextBtnMessage, setNextBtnMessage] = useState("")
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalData, setModalData] = useState<{
+        type?: "success" | "info" | "warning" | "error"
+        title?: string;
+        description?: string;
+        actionLabel?: string
+    }>({})
 
     const handleNext = async () => {
+        setNextBtnMessage("กำลังตรวจสอบ...")
+        try {
+            if (currentStep == 0 && !registerType) {
 
-        if (currentStep == 0 && !registerType) {
-
-            toast({
-                title: "จำเป็น",
-                description: "โปรดเลือกรูปแบบการสมัคร",
-            });
-            return;
-        }
-
-
-        // const fields = getFieldsForCurrentStep();
-        // const isValid = await form.trigger(
-        //     fields as Parameters<typeof form.trigger>[0]
-        // );
-
-        if (currentStep == 1) {
-            if (registerType == 1) {
-                if (!username || !password || !email || !passwordC) {
-                    return toast({
-                        title: "คำแนะนำ",
-                        description: "โปรดกรอกข้อมูลให้ครบถ้วน",
-                        color: "#ff5151"
-                    });
-                }
-
-                if(password != passwordC){
-
-                    return toast({
-                        title: "คำแนะนำ",
-                        description: "รหัสผ่านไม่ตรงกัน",
-                        color: "#ff5151"
-                    });
-                }
-            } else {
-
+                toast({
+                    title: "จำเป็น",
+                    description: "โปรดเลือกรูปแบบการสมัคร",
+                });
+                return;
             }
+
+
+            // const fields = getFieldsForCurrentStep();
+            // const isValid = await form.trigger(
+            //     fields as Parameters<typeof form.trigger>[0]
+            // );
+
+            if (currentStep == 1) {
+                if (registerType == 1) {
+                    if (!username || !password || !email || !passwordC) {
+                        return toast({
+                            title: "คำเตือน",
+                            description: "โปรดกรอกข้อมูลให้ครบถ้วน",
+                            color: "#ff5151"
+                        });
+                    }
+
+                    if (password.length < 6) {
+                        return toast({
+                            title: "คำเตือน",
+                            description: "รหัสผ่านต้องมีความยาว 6 ตัวอักษร"
+                        })
+                    }
+
+                    if (password != passwordC) {
+
+                        return toast({
+                            title: "คำเตือน",
+                            description: "รหัสผ่านไม่ตรงกัน",
+                            color: "#ff5151"
+                        });
+                    }
+
+                    const checkEmail = await axios.get(`/api/customers/email?email=${email}`, {
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+
+                    if (checkEmail.data) {
+                        if (checkEmail.data.customer != null) {
+                            return toast({
+                                title: "โปรดทราบ",
+                                description: "Email นี้มีอยู่ในระบบแล้ว"
+                            })
+                        }
+                    } else {
+                        return toast({
+                            title: "เกิดข้อผิดพลาด",
+                            description: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้"
+                        })
+                    }
+                } else {
+
+                }
+            }
+            if (currentStep == 2) {
+                if (registerType == 1) {
+                    if (!phone || !address || !province || !city || !zipCode) {
+                        return toast({
+                            title: "คำเตือน",
+                            description: "โปรดกรอกข้อมูลให้ครบถ้วน",
+                            color: "#ff5151"
+                        });
+                    }
+                }
+            }
+            if (currentStep == 3) {
+                if (registerType == 1) {
+                    if (!org_select) {
+                        return toast({
+                            title: "คำเตือน",
+                            description: "โปรดเลือกองค์กร",
+                            color: "#ff5151"
+                        });
+                    }
+                }
+            }
+            if (currentStep == 4) {
+                if (registerType == 1) {
+                    if (!privacy || !policy) {
+                        return toast({
+                            title: "โปรดทราบ",
+                            description: "โปรดยอมรับเงื่อนไขการใช้งานและข้อกำหนดความเป็นส่วนตัวเพื่อสมัครบัญชี",
+                            color: "#ff5151"
+                        });
+                    }
+
+
+
+                    const registerData = await axios.post('/api/customers', {
+                        username,
+                        email,
+                        password,
+                        phone,
+                        address,
+                        province,
+                        city,
+                        zipCode,
+                        org_select
+                    }, {
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+
+                    if(registerData.data) {
+                        if(registerData.data.status  == false){
+                            setModalData({
+                                description : registerData.data.message,
+                                title : "ผิดพลาด",
+                                type : "error",
+                                actionLabel: "ปิด"
+                            })
+
+                            setModalOpen(true)
+                        }else{
+                            setModalData({
+                                description : registerData.data.message,
+                                title : "สำเร็จ",
+                                type : "success",
+                                actionLabel: "ปิด"
+                            })
+
+                            setModalOpen(true)
+                        }
+                    }
+                }
+            }
+            setCurrentStep(prev => Math.min(prev + 1, totalSteps - 1));
+        } catch (error) {
+
+        } finally {
+            setNextBtnMessage("")
         }
-
-
-
-
-        setCurrentStep(prev => Math.min(prev + 1, totalSteps - 1));
     };
 
     const handleBack = () => {
         setCurrentStep(prev => Math.max(prev - 1, 0));
     };
-
-    const getFieldsForCurrentStep = () => {
-        if (registrationType === 'person') {
-            switch (currentStep) {
-                case 0: return ['registrationType'];
-                case 1: return ['name', 'email', 'password', 'confirmPassword'];
-                case 2: return ['phone', 'address', 'city', 'state', 'zipCode', 'country'];
-                case 3: return ['profilePicture'];
-                case 4: return ['organizationId', 'role'];
-                case 5: return ['termsAccepted', 'privacyAccepted'];
-                default: return [];
-            }
-        } else {
-            switch (currentStep) {
-                case 0: return ['registrationType'];
-                case 1: return ['org_name', 'org_email', 'org_phone'];
-                case 2: return ['org_address', 'org_city', 'org_state', 'org_zipCode', 'org_country'];
-                case 3: return ['org_logo'];
-                case 4: return ['org_admins', 'org_members'];
-                case 5: return ['termsAccepted', 'privacyAccepted'];
-                default: return [];
-            }
-        }
-    };
-
     async function onSubmit(values: z.infer<typeof registerSchema>) {
         try {
             // TODO: Implement registration logic
@@ -692,16 +782,22 @@ export default function RegisterForm() {
                                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                                     <FormControl>
                                         <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
+                                            checked={policy}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setPolicy(true)
+                                                } else {
+                                                    setPolicy(false)
+                                                }
+                                            }}
                                         />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                        <FormLabel>
+                                        <FormLabel className={`${policy ? "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300" : ""}`}>
                                             ยอมรับ{" "}
                                             <a
                                                 href="/terms"
-                                                className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                                                className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 underline"
                                             >
                                                 ข้อตกลงและเงื่อนไข
                                             </a>
@@ -717,16 +813,22 @@ export default function RegisterForm() {
                                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                                     <FormControl>
                                         <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
+                                            checked={privacy}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setPrivacy(true)
+                                                } else {
+                                                    setPrivacy(false)
+                                                }
+                                            }}
                                         />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                        <FormLabel>
+                                        <FormLabel className={`${privacy ? "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300" : ""}`}>
                                             ยอมรับ{" "}
                                             <a
                                                 href="/privacy"
-                                                className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                                                className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 underline"
                                             >
                                                 นโยบายความเป็นส่วนตัว
                                             </a>
@@ -744,51 +846,69 @@ export default function RegisterForm() {
     };
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="mb-8">
-                    <div className="flex justify-between text-sm mb-2">
-                        <span>ขั้นตอนที่ {currentStep + 1} จาก {totalSteps}</span>
-                        <span>{Math.round(progress)}% เสร็จสิ้น</span>
-                    </div>
-                    <Progress value={progress} className="h-2" />
-                </div>
-
-                {renderStep()}
-
-                <div className={`flex ${currentStep == 0 ? "justify-end" : "justify-between"} mt-8`}>
-                    {
-                        currentStep != 0 && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleBack}
-                                disabled={currentStep === 0}
-                            >
-                                ย้อนกลับ
-                            </Button>
-                        )
+        <>
+            <CustomAlertDialog
+                type={modalData.type}
+                title={modalData.title ?? "Alert"}
+                description={modalData.description}
+                open={modalOpen}
+                actionLabel={modalData.actionLabel}
+                showCancel={false}
+                onAction={(() => {
+                    if(regSuccess){
+                        window.location.href = "/auth/signin"
                     }
-                    {currentStep === totalSteps - 1 ? (
-                        <Button
-                            type="submit"
-                            className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-                        >
-                            ยืนยันการสมัคร
-                        </Button>
-                    ) :
+                    setModalOpen(false)
+                })}
+            />
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <div className="mb-8">
+                        <div className="flex justify-between text-sm mb-2">
+                            <span>ขั้นตอนที่ {currentStep + 1} จาก {totalSteps}</span>
+                            <span>{Math.round(progress)}% เสร็จสิ้น</span>
+                        </div>
+                        <Progress value={progress} className="h-2" />
+                    </div>
 
-                        (
+                    {renderStep()}
+
+                    <div className={`flex ${currentStep == 0 ? "justify-end" : "justify-between"} mt-8`}>
+                        {
+                            currentStep != 0 && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleBack}
+                                    disabled={currentStep === 0}
+                                >
+                                    ย้อนกลับ
+                                </Button>
+                            )
+                        }
+                        {currentStep === totalSteps - 1 ? (
                             <Button
-                                type="button"
-                                onClick={handleNext}
+                                type="submit"
                                 className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+                                onClick={handleNext}
                             >
-                                ถัดไป
+
+                                {nextBtnMessage != "" ? nextBtnMessage : "ยืนยันการสมัคร"}
                             </Button>
-                        )}
-                </div>
-            </form>
-        </Form>
+                        ) :
+
+                            (
+                                <Button
+                                    type="button"
+                                    onClick={handleNext}
+                                    className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+                                >
+                                    {nextBtnMessage != "" ? nextBtnMessage : "ถัดไป"}
+                                </Button>
+                            )}
+                    </div>
+                </form>
+            </Form>
+        </>
     );
 }

@@ -1,0 +1,26 @@
+import { Metadata } from 'next';
+import CalculationHistory from '@/components/history/calculation-history';
+
+export const metadata: Metadata = {
+    title: 'Calculation History | Carbon Footprint Calculator',
+    description: 'View your carbon footprint calculation history and track your progress over time.',
+};
+
+export default function HistoryPage() {
+    return (
+        <div className="container mx-auto px-4 py-12">
+            <div className="max-w-6xl mx-auto">
+                <div className="text-center mb-10">
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        Your Calculation History
+                    </h1>
+                    <p className="text-lg text-gray-600 dark:text-gray-400">
+                        Track your carbon footprint over time and see your progress towards sustainability goals.
+                    </p>
+                </div>
+
+                <CalculationHistory />
+            </div>
+        </div>
+    );
+}

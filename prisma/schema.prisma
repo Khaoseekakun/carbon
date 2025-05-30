@@ -24,7 +24,7 @@ model Customers {
   city              String?
   state             String?
   zipCode           String?
-  country           String?
+  province          String?
   isActive          Boolean             @default(true)
   isVerified        Boolean             @default(false)
   lastLogin         DateTime?
@@ -65,7 +65,7 @@ model Organization {
   org_city    String?
   org_state   String?
   org_zipCode String?
-  org_country String?
+  org_province String?
   org_logo    String?
   org_admins  Customers[] @relation("OrganizationAdmins")
   org_members Customers[] @relation("OrganizationMembers")
