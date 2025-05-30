@@ -797,7 +797,7 @@ export default function RegisterForm() {
                                         <FormLabel className={`${policy ? "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300" : ""}`}>
                                             ยอมรับ{" "}
                                             <a
-                                                href="/terms"
+                                                href="/terms" target='_blank'
                                                 className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 underline"
                                             >
                                                 ข้อตกลงและเงื่อนไข
@@ -828,7 +828,7 @@ export default function RegisterForm() {
                                         <FormLabel className={`${privacy ? "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300" : ""}`}>
                                             ยอมรับ{" "}
                                             <a
-                                                href="/privacy"
+                                                href="/privacy" target='_blank'
                                                 className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 underline"
                                             >
                                                 นโยบายความเป็นส่วนตัว
