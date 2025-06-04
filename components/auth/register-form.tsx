@@ -23,7 +23,7 @@ import { Card, CardContent } from '../ui/card';
 import { Organization } from '@/lib/generated/prisma';
 import axios from "axios"
 import { CustomAlertDialog } from '../ui/alert-dialog';
-import { title } from 'node:process';
+import { useSession } from '../providers/SessionProvider';
 const registerSchema = z.object({
     // Step 0
     registrationType: z.enum(['person', 'organization']),
@@ -97,6 +97,20 @@ export default function RegisterForm() {
     const [policy, setPolicy] = useState(false)
     const [regSuccess, setRegSuccess] = useState(false)
 
+
+    // Organizations
+    const [org_names, setOrg_names] = useState("")
+    const [org_email, setOrgEmail] = useState("")
+    const [org_phone, setOrgPhone] = useState("")
+    const [org_password, setOrg_password] = useState("")
+    const [org_passwordC, setOrg_passwordC] = useState("")
+    const [org_address, setOrg_Address] = useState("")
+    const [org_city, setOrg_City] = useState("")
+    const [org_province, setOrg_Province] = useState("")
+    const [org_zipCode, setOrg_ZipCode] = useState("")
+
+    // =n
+
     useEffect(() => {
         (async () => {
             try {
@@ -128,7 +142,7 @@ export default function RegisterForm() {
 
     const registrationType = registerType == 1 ? "person" : "org"
 
-    const totalSteps = registrationType === 'person' ? 5 : 5;
+    const totalSteps = registrationType === 'person' ? 5 : 4;
     const progress = ((currentStep + 1) / totalSteps) * 100;
     const [nextBtnMessage, setNextBtnMessage] = useState("")
     const [modalOpen, setModalOpen] = useState(false);
@@ -150,20 +164,13 @@ export default function RegisterForm() {
                 });
                 return;
             }
-
-
-            // const fields = getFieldsForCurrentStep();
-            // const isValid = await form.trigger(
-            //     fields as Parameters<typeof form.trigger>[0]
-            // );
-
             if (currentStep == 1) {
                 if (registerType == 1) {
                     if (!username || !password || !email || !passwordC) {
                         return toast({
                             title: "คำเตือน",
                             description: "โปรดกรอกข้อมูลให้ครบถ้วน",
-                            color: "#ff5151"
+                            variant: "destructive",
                         });
                     }
 
@@ -179,7 +186,7 @@ export default function RegisterForm() {
                         return toast({
                             title: "คำเตือน",
                             description: "รหัสผ่านไม่ตรงกัน",
-                            color: "#ff5151"
+                            variant: "destructive",
                         });
                     }
 
@@ -203,7 +210,49 @@ export default function RegisterForm() {
                         })
                     }
                 } else {
+                    if (!org_names || !org_email || !org_password || !org_passwordC) {
+                        return toast({
+                            title: "คำเตือน",
+                            description: "โปรดกรอกข้อมูลให้ครบถ้วน",
+                            variant: "destructive",
+                        });
+                    }
 
+                    if (org_password.length < 6) {
+                        return toast({
+                            title: "คำเตือน",
+                            description: "รหัสผ่านต้องมีความยาว 6 ตัวอักษร"
+                        })
+                    }
+
+                    if (org_password != org_passwordC) {
+
+                        return toast({
+                            title: "คำเตือน",
+                            description: "รหัสผ่านไม่ตรงกัน",
+                            variant: "destructive",
+                        });
+                    }
+
+                    const checkEmail = await axios.get(`/api/organization/email?email=${email}`, {
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+
+                    if (checkEmail.data) {
+                        if (checkEmail.data.organization != null) {
+                            return toast({
+                                title: "โปรดทราบ",
+                                description: "Email นี้มีอยู่ในระบบแล้ว"
+                            })
+                        }
+                    } else {
+                        return toast({
+                            title: "เกิดข้อผิดพลาด",
+                            description: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้"
+                        })
+                    }
                 }
             }
             if (currentStep == 2) {
@@ -212,7 +261,15 @@ export default function RegisterForm() {
                         return toast({
                             title: "คำเตือน",
                             description: "โปรดกรอกข้อมูลให้ครบถ้วน",
-                            color: "#ff5151"
+                            variant: "destructive",
+                        });
+                    }
+                } else {
+                    if (!org_phone || !org_address || !org_province || !org_city || !org_zipCode) {
+                        return toast({
+                            title: "คำเตือน",
+                            description: "โปรดกรอกข้อมูลให้ครบถ้วน",
+                            variant: "destructive",
                         });
                     }
                 }
@@ -223,8 +280,54 @@ export default function RegisterForm() {
                         return toast({
                             title: "คำเตือน",
                             description: "โปรดเลือกองค์กร",
-                            color: "#ff5151"
+                            variant: "destructive",
                         });
+                    }
+                } else {
+                    if (!privacy || !policy) {
+                        return toast({
+                            title: "โปรดทราบ",
+                            description: "โปรดยอมรับเงื่อนไขการใช้งานและข้อกำหนดความเป็นส่วนตัวเพื่อสมัครบัญชี",
+                            variant: "destructive",
+                        });
+                    } else {
+                        const registerData = await axios.post('/api/organization', {
+                            org_name: org_names,
+                            org_email,
+                            org_password,
+                            org_phone,
+                            org_address,
+                            org_province,
+                            org_city,
+                            org_zipCode
+                        }, {
+                            headers: {
+                                "Content-Type": "application/json"
+                            }
+                        })
+
+                        if (registerData.data) {
+                            if (registerData.data.status == false) {
+                                setModalData({
+                                    description: registerData.data.message,
+                                    title: "ผิดพลาด",
+                                    type: "error",
+                                    actionLabel: "ปิด"
+                                })
+
+                                setModalOpen(true)
+                            } else {
+                                setModalData({
+                                    description: registerData.data.message,
+                                    title: "สำเร็จ",
+                                    type: "success",
+                                    actionLabel: "ปิด"
+                                })
+
+                                setRegSuccess(true)
+                                setModalOpen(true)
+                            }
+                        }
                     }
                 }
             }
@@ -234,12 +337,9 @@ export default function RegisterForm() {
                         return toast({
                             title: "โปรดทราบ",
                             description: "โปรดยอมรับเงื่อนไขการใช้งานและข้อกำหนดความเป็นส่วนตัวเพื่อสมัครบัญชี",
-                            color: "#ff5151"
+                            variant: "destructive",
                         });
                     }
-
-
-
                     const registerData = await axios.post('/api/customers', {
                         username,
                         email,
@@ -256,21 +356,21 @@ export default function RegisterForm() {
                         }
                     })
 
-                    if(registerData.data) {
-                        if(registerData.data.status  == false){
+                    if (registerData.data) {
+                        if (registerData.data.status == false) {
                             setModalData({
-                                description : registerData.data.message,
-                                title : "ผิดพลาด",
-                                type : "error",
+                                description: registerData.data.message,
+                                title: "ผิดพลาด",
+                                type: "error",
                                 actionLabel: "ปิด"
                             })
 
                             setModalOpen(true)
-                        }else{
+                        } else {
                             setModalData({
-                                description : registerData.data.message,
-                                title : "สำเร็จ",
-                                type : "success",
+                                description: registerData.data.message,
+                                title: "สำเร็จ",
+                                type: "success",
                                 actionLabel: "ปิด"
                             })
 
@@ -291,22 +391,29 @@ export default function RegisterForm() {
     const handleBack = () => {
         setCurrentStep(prev => Math.max(prev - 1, 0));
     };
-    async function onSubmit(values: z.infer<typeof registerSchema>) {
-        try {
-            // TODO: Implement registration logic
-            console.log(values);
-            toast({
-                title: "สมัครสมาชิกสำเร็จ",
-                description: "กรุณายืนยันอีเมลของคุณ",
-            });
-        } catch (error) {
-            toast({
-                title: "เกิดข้อผิดพลาด",
-                description: "ไม่สามารถสมัครสมาชิกได้ กรุณาลองใหม่อีกครั้ง",
-                variant: "destructive",
-            });
+
+    const { session, logout } = useSession();
+    const [loading, setLoading] = useState(true)
+    useEffect(() => {
+        if (session) {
+            window.location.href = "/"
+            setLoading(true)
+        } else {
+            setLoading(false)
         }
-    }
+    }, [session])
+
+    if (loading) return (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="flex flex-col items-center">
+                <svg className="animate-spin h-10 w-10 text-green-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span className="text-lg text-green-700 font-medium">กำลังตรวจสอบข้อมูล...</span>
+            </div>
+        </div>
+    )
 
     const renderStep = () => {
         switch (currentStep) {
@@ -483,7 +590,9 @@ export default function RegisterForm() {
                                 <FormItem>
                                     <FormLabel>ชื่อองค์กร</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="กรอกชื่อองค์กร" {...field} />
+                                        <Input placeholder="กรอกชื่อองค์กร" {...field} value={org_names} onChange={(e) => {
+                                            setOrg_names(e.target.value)
+                                        }} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -496,7 +605,9 @@ export default function RegisterForm() {
                                 <FormItem>
                                     <FormLabel>อีเมลองค์กร</FormLabel>
                                     <FormControl>
-                                        <Input type="email" placeholder="กรอกอีเมลองค์กร" {...field} />
+                                        <Input type="email" placeholder="กรอกอีเมลองค์กร" {...field} value={org_email} onChange={(e) => {
+                                            setOrgEmail(e.target.value)
+                                        }} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -504,12 +615,67 @@ export default function RegisterForm() {
                         />
                         <FormField
                             control={form.control}
-                            name="org_phone"
+                            name="password"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>เบอร์โทรศัพท์องค์กร</FormLabel>
+                                    <FormLabel>รหัสผ่าน</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="กรอกเบอร์โทรศัพท์องค์กร" {...field} />
+                                        <div className="relative">
+                                            <Input
+                                                type={showPassword ? "text" : "password"}
+                                                placeholder="กรอกรหัสผ่านของคุณ"
+                                                {...field}
+                                                value={org_password}
+                                                onChange={(e) => {
+                                                    setOrg_password(e.target.value)
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                            >
+                                                {showPassword ? (
+                                                    <EyeOff className="h-4 w-4" />
+                                                ) : (
+                                                    <Eye className="h-4 w-4" />
+                                                )}
+                                            </button>
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>ยืนยันรหัสผ่าน</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Input
+                                                type={showConfirmPassword ? "text" : "password"}
+                                                placeholder="กรอกรหัสผ่านอีกครั้ง"
+                                                {...field}
+                                                value={org_passwordC}
+                                                onChange={(e) => {
+                                                    setOrg_passwordC(e.target.value)
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                            >
+                                                {showConfirmPassword ? (
+                                                    <EyeOff className="h-4 w-4" />
+                                                ) : (
+                                                    <Eye className="h-4 w-4" />
+                                                )}
+                                            </button>
+                                        </div>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -522,6 +688,7 @@ export default function RegisterForm() {
                 return registrationType === 'person' ? (
                     // Person Contact Info
                     <div className="space-y-4">
+
                         <FormField
                             control={form.control}
                             name="phone"
@@ -607,12 +774,29 @@ export default function RegisterForm() {
                     <div className="space-y-4">
                         <FormField
                             control={form.control}
+                            name="org_phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>เบอร์โทรศัพท์องค์กร</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="กรอกเบอร์โทรศัพท์องค์กร" {...field} value={org_phone} onChange={(e) => {
+                                            setOrgPhone(e.target.value)
+                                        }} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
                             name="org_address"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>ที่อยู่องค์กร</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="กรอกที่อยู่องค์กร" {...field} />
+                                        <Input placeholder="กรอกที่อยู่องค์กร" {...field} value={org_address} onChange={(e) => {
+                                            setOrg_Address(e.target.value)
+                                        }} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -626,7 +810,9 @@ export default function RegisterForm() {
                                     <FormItem>
                                         <FormLabel>เมือง</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="กรอกเมือง" {...field} />
+                                            <Input placeholder="กรอกเมือง" {...field} value={org_city} onChange={(e) => {
+                                                setOrg_City(e.target.value)
+                                            }} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -639,7 +825,9 @@ export default function RegisterForm() {
                                     <FormItem>
                                         <FormLabel>จังหวัด</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="กรอกจังหวัด" {...field} />
+                                            <Input placeholder="กรอกจังหวัด" {...field} value={org_province} onChange={(e) => {
+                                                setOrg_Province(e.target.value)
+                                            }} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -654,7 +842,9 @@ export default function RegisterForm() {
                                     <FormItem>
                                         <FormLabel>รหัสไปรษณีย์</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="กรอกรหัสไปรษณีย์" {...field} />
+                                            <Input placeholder="กรอกรหัสไปรษณีย์" {...field} value={org_zipCode} onChange={(e) => {
+                                                setOrg_ZipCode(e.target.value)
+                                            }} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -723,11 +913,11 @@ export default function RegisterForm() {
                                     <CardContent className="p-4 flex items-center space-x-4">
                                         <div className="flex-shrink-0">
                                             <img
-                                                src={org.org_logo ?? undefined}
+                                                src={org.org_logo ?? "/images/unknown.png"}
                                                 alt="LogoImage"
                                                 width={50}
                                                 height={50}
-                                                className="w-12 h-12 rounded-full object-cover bg-gray-300"
+                                                className="w-12 h-12 rounded-full object-cover bg-gray-100"
                                             />
                                         </div>
                                         <div className="flex-1">
@@ -742,30 +932,67 @@ export default function RegisterForm() {
                     </div>
                 ) : (
                     // Organization Admin Setup
-                    <div className="space-y-4">
+
+                    <div className="space-y-6">
                         <FormField
                             control={form.control}
-                            name="org_admins"
+                            name="termsAccepted"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>กำหนดผู้ดูแล</FormLabel>
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                                     <FormControl>
-                                        <Input placeholder="อีเมลผู้ดูแล" {...field} />
+                                        <Checkbox
+                                            checked={policy}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setPolicy(true)
+                                                } else {
+                                                    setPolicy(false)
+                                                }
+                                            }}
+                                        />
                                     </FormControl>
-                                    <FormMessage />
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className={`${policy ? "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300" : ""}`}>
+                                            ยอมรับ{" "}
+                                            <a
+                                                href="/terms" target='_blank'
+                                                className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 underline"
+                                            >
+                                                ข้อตกลงและเงื่อนไข
+                                            </a>
+                                        </FormLabel>
+                                    </div>
                                 </FormItem>
                             )}
                         />
                         <FormField
                             control={form.control}
-                            name="org_members"
+                            name="privacyAccepted"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>เชิญสมาชิก (ไม่บังคับ)</FormLabel>
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                                     <FormControl>
-                                        <Input placeholder="อีเมลสมาชิก" {...field} />
+                                        <Checkbox
+                                            checked={privacy}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setPrivacy(true)
+                                                } else {
+                                                    setPrivacy(false)
+                                                }
+                                            }}
+                                        />
                                     </FormControl>
-                                    <FormMessage />
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className={`${privacy ? "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300" : ""}`}>
+                                            ยอมรับ{" "}
+                                            <a
+                                                href="/privacy" target='_blank'
+                                                className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 underline"
+                                            >
+                                                นโยบายความเป็นส่วนตัว
+                                            </a>
+                                        </FormLabel>
+                                    </div>
                                 </FormItem>
                             )}
                         />
@@ -856,14 +1083,14 @@ export default function RegisterForm() {
                 actionLabel={modalData.actionLabel}
                 showCancel={false}
                 onAction={(() => {
-                    if(regSuccess){
+                    if (regSuccess) {
                         window.location.href = "/auth/signin"
                     }
                     setModalOpen(false)
                 })}
             />
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form className="space-y-6">
                     <div className="mb-8">
                         <div className="flex justify-between text-sm mb-2">
                             <span>ขั้นตอนที่ {currentStep + 1} จาก {totalSteps}</span>
@@ -889,7 +1116,7 @@ export default function RegisterForm() {
                         }
                         {currentStep === totalSteps - 1 ? (
                             <Button
-                                type="submit"
+                                type="button"
                                 className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
                                 onClick={handleNext}
                             >

@@ -2,22 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Leaf, LoaderCircle, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { useSession } from 'next-auth/react';
+import { useSession } from '../providers/SessionProvider';
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { data: session } = useSession();
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(false)
-  }, [session])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +20,13 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+
+  const { session, logout } = useSession();
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    setLoading(false)
+  }, [session])
 
   const navItems = [
     { name: 'หน้าแรก', href: '/' },
@@ -38,7 +38,7 @@ const Header = () => {
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled
-        ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm'
+        ? 'bg-white/50 dark:bg-gray-900/50 backdrop-blur-[5px] shadow-sm'
         : 'bg-transparent'
         }`}
     >
@@ -63,18 +63,31 @@ const Header = () => {
             </Link>
           ))}
           {
-            session ? loading == true ? (
+            loading ? (
               <LoaderCircle className="animate-spin h-6 w-6 text-primary my-auto" />
+            ) : session ? (
+              <>
+                <Link
+                  href={"/profile"}
+                  className={`text-sm font-medium transition-colors ${pathname === "/profile"
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400'
+                    }`}
+                >
+                  โปรไฟล์
+                </Link>
+
+                <Button asChild className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
+                  <div className="cursor-pointer" onClick={() => {
+                    logout()
+                  }}>ออกจากระบบ</div>
+                </Button>
+              </>
             ) : (
               <Button asChild className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
-                <Link href="/calculator">คำนวณตอนนี้</Link>
-              </Button>
-            ) : (
-              <Button asChild className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
-                <Link href="/auth/signin">คำนวณตอนนี้</Link>
+                <Link href="/auth/signin">เข้าสู่ระบบ</Link>
               </Button>
             )
-
           }
 
           <ThemeToggle />
@@ -115,12 +128,20 @@ const Header = () => {
                 <LoaderCircle className="animate-spin h-6 w-6 text-primary my-auto" />
               ) : (
                 <>
-                  <Button
-                    asChild
-                    className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 w-full mt-4"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                  <Link
+                    href={"/profile"}
+                    className={`text-sm font-medium transition-colors ${pathname === "/profile"
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400'
+                      }`}
                   >
-                    <Link href="/calculator">คำนวณตอนนี้</Link>
+                    โปรไฟล์
+                  </Link>
+
+                  <Button asChild className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
+                    <div className="cursor-pointer" onClick={() => {
+                      logout()
+                    }}>ออกจากระบบ</div>
                   </Button>
                 </>
               ) : (

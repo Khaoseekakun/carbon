@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { AuthProvider } from './auth-provider';
+import SessionProvider from "@/components/providers/SessionProvider"; // adjust path as needed
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,9 +21,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th" suppressHydrationWarning>
+    <html lang="th" >
       <body className={`${inter.className} min-h-screen flex flex-col`}>
-        <AuthProvider>
+        <SessionProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
@@ -35,7 +36,7 @@ export default function RootLayout({
             <Footer />
             <Toaster />
           </ThemeProvider>
-        </AuthProvider>
+        </SessionProvider>
       </body>
     </html>
   );

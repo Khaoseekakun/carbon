@@ -56,11 +56,11 @@ const { dailyData, monthlyData } = generateMockData();
 
 export default function CalculationHistory() {
     const [selectedDates, setSelectedDates] = useState<Date | undefined>(new Date());
-    const [view, setView] = useState('daily'); // 'daily' or 'monthly'
+    const [view, setView] = useState('daily'); // 'daily' หรือ 'monthly'
 
     const handleDownload = () => {
-        // Implement CSV download logic
-        console.log('Downloading data...');
+        // เพิ่มฟังก์ชันดาวน์โหลด CSV
+        console.log('กำลังดาวน์โหลดข้อมูล...');
     };
 
     return (
@@ -68,18 +68,18 @@ export default function CalculationHistory() {
             <Tabs defaultValue="chart" className="w-full">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <TabsList>
-                        <TabsTrigger value="chart">Chart View</TabsTrigger>
-                        <TabsTrigger value="table">Table View</TabsTrigger>
+                        <TabsTrigger value="chart">มุมมองกราฟ</TabsTrigger>
+                        <TabsTrigger value="table">มุมมองตาราง</TabsTrigger>
                     </TabsList>
 
                     <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" onClick={() => setView(view === 'daily' ? 'monthly' : 'daily')}>
                             <Filter className="h-4 w-4 mr-2" />
-                            {view === 'daily' ? 'Show Monthly' : 'Show Daily'}
+                            {view === 'daily' ? 'แสดงรายเดือน' : 'แสดงรายวัน'}
                         </Button>
                         <Button variant="outline" size="sm" onClick={handleDownload}>
                             <Download className="h-4 w-4 mr-2" />
-                            Export Data
+                            ส่งออกข้อมูล
                         </Button>
                     </div>
                 </div>
@@ -89,7 +89,7 @@ export default function CalculationHistory() {
                         <Card className="lg:col-span-2">
                             <CardContent className="p-6">
                                 <h3 className="text-lg font-semibold mb-4">
-                                    {view === 'daily' ? 'Daily Carbon Footprint' : 'Monthly Carbon Footprint'}
+                                    {view === 'daily' ? 'คาร์บอนฟุตพริ้นท์รายวัน' : 'คาร์บอนฟุตพริ้นท์รายเดือน'}
                                 </h3>
                                 <div className="h-[400px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -103,7 +103,7 @@ export default function CalculationHistory() {
                                                 tick={{ fontSize: 12 }}
                                             />
                                             <YAxis
-                                                label={{ value: 'kg CO₂e', angle: -90, position: 'insideLeft' }}
+                                                label={{ value: 'กก. CO₂e', angle: -90, position: 'insideLeft' }}
                                             />
                                             <Tooltip />
                                             <Legend />
@@ -111,7 +111,7 @@ export default function CalculationHistory() {
                                                 type="monotone"
                                                 dataKey="total"
                                                 stroke="#10b981"
-                                                name="Total"
+                                                name="รวม"
                                             />
                                         </LineChart>
                                     </ResponsiveContainer>
@@ -121,7 +121,7 @@ export default function CalculationHistory() {
 
                         <Card>
                             <CardContent className="p-6">
-                                <h3 className="text-lg font-semibold mb-4">Select Date Range</h3>
+                                <h3 className="text-lg font-semibold mb-4">เลือกช่วงวันที่</h3>
                                 <Calendar
                                     mode="single"
                                     selected={selectedDates}
@@ -134,7 +134,7 @@ export default function CalculationHistory() {
 
                     <Card>
                         <CardContent className="p-6">
-                            <h3 className="text-lg font-semibold mb-4">Emissions by Category</h3>
+                            <h3 className="text-lg font-semibold mb-4">การปล่อยคาร์บอนแยกตามหมวดหมู่</h3>
                             <div className="h-[300px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
@@ -147,14 +147,14 @@ export default function CalculationHistory() {
                                             tick={{ fontSize: 12 }}
                                         />
                                         <YAxis
-                                            label={{ value: 'kg CO₂e', angle: -90, position: 'insideLeft' }}
+                                            label={{ value: 'กก. CO₂e', angle: -90, position: 'insideLeft' }}
                                         />
                                         <Tooltip />
                                         <Legend />
-                                        <Bar dataKey="home" fill="#10b981" name="Home" />
-                                        <Bar dataKey="transport" fill="#3b82f6" name="Transport" />
-                                        <Bar dataKey="food" fill="#f59e0b" name="Food" />
-                                        <Bar dataKey="other" fill="#8b5cf6" name="Other" />
+                                        <Bar dataKey="home" fill="#10b981" name="ที่อยู่อาศัย" />
+                                        <Bar dataKey="transport" fill="#3b82f6" name="การเดินทาง" />
+                                        <Bar dataKey="food" fill="#f59e0b" name="อาหาร" />
+                                        <Bar dataKey="other" fill="#8b5cf6" name="อื่น ๆ" />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -169,12 +169,12 @@ export default function CalculationHistory() {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>{view === 'daily' ? 'Date' : 'Month'}</TableHead>
-                                            <TableHead className="text-right">Total</TableHead>
-                                            <TableHead className="text-right">Home</TableHead>
-                                            <TableHead className="text-right">Transport</TableHead>
-                                            <TableHead className="text-right">Food</TableHead>
-                                            <TableHead className="text-right">Other</TableHead>
+                                            <TableHead>{view === 'daily' ? 'วันที่' : 'เดือน'}</TableHead>
+                                            <TableHead className="text-right">รวม</TableHead>
+                                            <TableHead className="text-right">ที่อยู่อาศัย</TableHead>
+                                            <TableHead className="text-right">การเดินทาง</TableHead>
+                                            <TableHead className="text-right">อาหาร</TableHead>
+                                            <TableHead className="text-right">อื่น ๆ</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>

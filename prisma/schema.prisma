@@ -57,18 +57,19 @@ model HistoryCalculator {
 }
 
 model Organization {
-  id          Int         @id @default(autoincrement())
-  org_name    String
-  org_email   String      @unique
-  org_phone   String?
-  org_address String?
-  org_city    String?
-  org_state   String?
-  org_zipCode String?
+  id           Int         @id @default(autoincrement())
+  org_name     String
+  org_email    String      @unique
+  org_phone    String?
+  org_address  String?
+  org_city     String?
+  org_state    String?
+  org_zipCode  String?
   org_province String?
-  org_logo    String?
-  org_admins  Customers[] @relation("OrganizationAdmins")
-  org_members Customers[] @relation("OrganizationMembers")
+  org_logo     String?
+  org_password String?
+  org_admins   Customers[] @relation("OrganizationAdmins")
+  org_members  Customers[] @relation("OrganizationMembers")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
