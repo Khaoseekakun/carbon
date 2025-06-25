@@ -1,10 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { BadgeCheck, Globe, Truck, Utensils, BarChart3, House } from 'lucide-react';
 import FeatureCard from '@/components/home/feature-card';
-import StatsSection from '@/components/home/stats-section';
-import TestimonialsSection from '@/components/home/testimonials-section';
 
 // Example usage
 export default function Home() {

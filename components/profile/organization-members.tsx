@@ -28,6 +28,7 @@ import {
 import { Search, Edit, Trash2, Users } from 'lucide-react';
 import { CustomerFormat, useLoadMemberOrganization } from './manage-profile';
 import { useSession } from '../providers/SessionProvider';
+import axios from 'axios';
 
 
 export default function OrganizationMembers() {
@@ -38,7 +39,7 @@ export default function OrganizationMembers() {
     const { session } = useSession();
     const [statusFilter, setStatusFilter] = useState<'all' | 'updated' | 'notUpdated'>('all');
     const [sortOption, setSortOption] = useState<'lastUpdatedAsc' | 'lastUpdatedDesc' | 'inactiveDaysDesc'>('lastUpdatedDesc');
-    const { loading: loadMember, data: memberData = [] } = useLoadMemberOrganization(session?.org_id!);
+    let { loading: loadMember, data: memberData = [] } = useLoadMemberOrganization(session?.org_id!);
 
     const hasUpdatedToday = (member: CustomerFormat) => {
         const latestUpdate = member.HistoryCalculator[0]?.createdAt;
@@ -90,10 +91,30 @@ export default function OrganizationMembers() {
     };
 
     const confirmDelete = () => {
-        console.log('Deleting member:', memberToDelete?.username);
         setIsDeleteDialogOpen(false);
+        deleteUserFormOrganization(memberToDelete?.id!);
         setMemberToDelete(null);
     };
+
+    const deleteUserFormOrganization = async (memberId: number) => {
+        try {
+            const response = await axios.delete(`/api/organization/${session?.id}/members/${memberId}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.token!}`, 
+                },
+            });
+            if (response.data.status) {
+                memberData = memberData.filter(member => member.id !== memberId); 
+                window.location.reload(); // Refresh the page to reflect changes
+            } else {
+                
+            }
+        }
+        catch (error) {
+            console.error('Error deleting member:', error);
+        }
+    }
 
     return (
         <div className="space-y-6">

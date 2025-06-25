@@ -19,7 +19,7 @@ import {
 import { Share2, Trophy, Bell } from 'lucide-react';
 import { useSession } from '../providers/SessionProvider';
 import { useEffect, useState } from 'react';
-import { Organization } from '@/lib/generated/prisma';
+import { HistoryCalculator, Organization } from '@/lib/generated/prisma';
 import axios from 'axios';
 import OrganizationMembers from './organization-members';
 
@@ -33,23 +33,29 @@ const dailyData = [
   { date: '2024-03-07', emissions: 8.5 },
 ];
 
-const monthlyData = [
-  { month: 'ม.ค.', emissions: 350 },
-  { month: 'ก.พ.', emissions: 320 },
-  { month: 'มี.ค.', emissions: 280 },
-];
-
 const achievements = [
   { id: 1, title: 'ใช้ขนส่งสาธารณะ 10 วัน', progress: 80 },
   { id: 2, title: 'ลดพลาสติกสำเร็จ', progress: 100 },
   { id: 3, title: 'ประหยัดพลังงาน 15%', progress: 60 },
 ];
 
+interface OrganizationNew extends Organization {
+  memberCount: number;
+  TotalCarbonFootprintValueToday: number;
+  TotalCarbonFootprintHistoryMonth: number;
+  HistoryCalculator: HistoryCalculator[];
+}
+
+
 export default function ProfilePage() {
 
   const { session, logout, loading } = useSession();
-  const [org, setOrg] = useState<Organization | null>(null)
+  const [org, setOrg] = useState<OrganizationNew | null>(null)
   const [load, setLoad] = useState(true)
+
+  // mothname, and value
+  const [monthlyData, setMonthlyData] = useState<{ month: string, emissions: number }[]>([])
+
   useEffect(() => {
     if (!session && loading == false) {
       window.location.href = "/"
@@ -61,12 +67,45 @@ export default function ProfilePage() {
               'Content-Type': "application/json"
             }
           })
+          if (org_data.data.status) {
+            setOrg(org_data.data.organization)
+          } else {
+            setOrg(null)
+          }
         } catch (error) {
 
         }
       })()
     }
   }, [session, loading])
+
+
+  useEffect(() => {
+    if (org == null) return;
+    setMonthlyData(
+      org.HistoryCalculator.reduce((acc: { month: string, emissions: number }[], history: HistoryCalculator) => {
+        const historyDate = new Date(history.createdAt);
+        const monthName = historyDate.toLocaleString('default', { month: 'short' });
+        const year = historyDate.getFullYear();
+        const monthKey = `${monthName} ${year}`;
+
+        const existingMonth = acc.find(m => m.month === monthKey);
+        if (existingMonth) {
+          existingMonth.emissions += history.result || 0;
+        } else {
+          acc.push({ month: monthKey, emissions: history.result || 0 });
+        }
+        return acc;
+      }, [])
+        .sort((a, b) => {
+          const [aMonth, aYear] = a.month.split(' ');
+          const [bMonth, bYear] = b.month.split(' ');
+          const aDate = new Date(`${aMonth} 1, ${aYear}`);
+          const bDate = new Date(`${bMonth} 1, ${bYear}`);
+          return aDate.getTime() - bDate.getTime();
+        })
+    );
+  }, [org])
 
   if (loading) return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -77,6 +116,33 @@ export default function ProfilePage() {
         </svg>
         <span className="text-lg text-green-700 font-medium">กำลังตรวจสอบข้อมูล...</span>
       </div>
+    </div>
+  )
+
+  if (org == null && session?.type != "organization") return (
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 flex items-center justify-center">
+      <Card className="max-w-md w-full">
+        <CardContent className="text-center p-6">
+          <h2 className="text-2xl font-bold mb-4">ไม่พบข้อมูลองค์กร</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">ดูเหมือนว่าคุณยังไม่ได้เข้าร่วมองค์กรใด ๆ</p>
+          <button
+            onClick={() => window.location.href = "/organization/join"}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+          >
+            เข้าร่วมองค์กร
+          </button>
+        </CardContent>
+      </Card>
+    </div>
+  )
+
+  if (org == null && session?.type == "organization") return (
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 flex items-center justify-center">
+      <Card className="max-w-md w-full">
+        <CardContent className="text-center p-6">
+          <h2 className="text-2xl font-bold mb-4">ไม่พบข้อมูลองค์กร</h2>
+        </CardContent>
+      </Card>
     </div>
   )
 
@@ -95,7 +161,6 @@ export default function ProfilePage() {
               session?.type == "organization" ? (
                 <>
                   <OrganizationMembers></OrganizationMembers>
-                  
                 </>
               ) :
                 (
@@ -174,28 +239,27 @@ export default function ProfilePage() {
           {/* Organization Profile */}
           <TabsContent value="organization">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Organization Info */}
               <Card className="md:col-span-1">
                 <CardContent className="p-6">
                   <div className="text-center">
                     <div className="relative w-32 h-32 mx-auto mb-4">
                       <Image
-                        src="https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg"
+                        src={org?.org_logo || '/images/org_default_logo.png'}
                         alt="Organization Logo"
                         fill
                         className="rounded-full object-cover"
                       />
                     </div>
-                    <h2 className="text-2xl font-bold mb-2">บริษัท รักษ์โลก จำกัด</h2>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">สมาชิก: 150 คน</p>
+                    <h2 className="text-2xl font-bold mb-2"> {org?.org_name || 'ไม่ทราบชื่อองค์กรณ์'}</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">สมาชิก: {org?.memberCount} คน</p>
                     <div className="space-y-4">
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">คาร์บอนฟุตพริ้นท์รวมวันนี้</p>
-                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">1,250 kg CO₂</p>
+                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">{org?.TotalCarbonFootprintValueToday} kg CO₂</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">คาร์บอนฟุตพริ้นท์รวมเดือนนี้</p>
-                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">35,000 kg CO₂</p>
+                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">{org?.TotalCarbonFootprintHistoryMonth} kg CO₂</p>
                       </div>
                     </div>
                   </div>
@@ -209,7 +273,7 @@ export default function ProfilePage() {
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={monthlyData}>
-                        <CartesianGrid strokeDasharray="3 3" />
+                        <CartesianGrid strokeDasharray="12 12" />
                         <XAxis dataKey="month" />
                         <YAxis />
                         <Tooltip />
@@ -222,28 +286,33 @@ export default function ProfilePage() {
             </div>
 
             {/* Organization Goals */}
-            <div className="mt-8">
-              <h3 className="text-xl font-bold mb-4">เป้าหมายองค์กร</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <h4 className="font-medium mb-2">ลด CO₂ ลง 10% ภายใน 3 เดือน</h4>
-                    <Progress value={70} className="h-2 mb-2" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">70% สำเร็จ</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6">
-                    <h4 className="font-medium mb-2">ปลูกต้นไม้ครบ 500 ต้น</h4>
-                    <Progress value={90} className="h-2 mb-2" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">450/500 ต้น</p>
-                  </CardContent>
-                </Card>
-              </div>
+            <div className="mt-8"></div>
+            <h3 className="text-xl font-bold mb-4">ประวัติการคำนวณคาร์บอนฟุตพริ้นท์รายวัน</h3>
+            <div className="overflow-x-auto">
+              <table className="table-auto w-full border-collapse border border-gray-300 dark:border-gray-700">
+                <thead>
+                  <tr className="bg-gray-100 dark:bg-gray-800">
+                    <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left">วันที่</th>
+                    <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left">ค่าที่คำนวณ (kg CO₂)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {org?.HistoryCalculator.map((history, index) => (
+                    <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-900">
+                      <td className="border border-gray-300 dark:border-gray-700 px-4 py-2">
+                        {new Date(history.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="border border-gray-300 dark:border-gray-700 px-4 py-2">
+                        {history.result?.toFixed(2) || '0.00'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* Notifications */}
-            <div className="mt-8">
+            {/* <div className="mt-8">
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
@@ -264,12 +333,12 @@ export default function ProfilePage() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
           </TabsContent>
         </Tabs>
 
         {/* Action Buttons */}
       </div>
-    </div>
+    </div >
   );
 }

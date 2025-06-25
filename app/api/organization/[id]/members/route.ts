@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
     try {
         const segments = req.nextUrl.pathname.split('/');
+        // https://example.com/api/organization/3/members/4
         const id = segments[segments.length - 2]; // Gets '3'
         const numericId = Number(id);
         if (isNaN(numericId)) {
