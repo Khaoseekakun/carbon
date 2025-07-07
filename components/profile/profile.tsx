@@ -2,11 +2,8 @@
 
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -14,30 +11,13 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Legend
 } from 'recharts';
-import { Share2, Trophy, Bell } from 'lucide-react';
 import { useSession } from '../providers/SessionProvider';
 import { useEffect, useState } from 'react';
 import { HistoryCalculator, Organization } from '@/lib/generated/prisma';
 import axios from 'axios';
 import OrganizationMembers from './organization-members';
-
-const dailyData = [
-  { date: '2024-03-01', emissions: 12.5 },
-  { date: '2024-03-02', emissions: 11.8 },
-  { date: '2024-03-03', emissions: 10.2 },
-  { date: '2024-03-04', emissions: 9.5 },
-  { date: '2024-03-05', emissions: 8.9 },
-  { date: '2024-03-06', emissions: 9.1 },
-  { date: '2024-03-07', emissions: 8.5 },
-];
-
-const achievements = [
-  { id: 1, title: 'ใช้ขนส่งสาธารณะ 10 วัน', progress: 80 },
-  { id: 2, title: 'ลดพลาสติกสำเร็จ', progress: 100 },
-  { id: 3, title: 'ประหยัดพลังงาน 15%', progress: 60 },
-];
+import { PersonStanding } from './PersonStanding';
 
 interface OrganizationNew extends Organization {
   memberCount: number;
@@ -164,76 +144,9 @@ export default function ProfilePage() {
                 </>
               ) :
                 (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Profile Info */}
-                    <Card className="md:col-span-1">
-                      <CardContent className="p-6">
-                        <div className="text-center">
-                          <div className="relative w-32 h-32 mx-auto mb-4">
-                            <Image
-                              src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg"
-                              alt="Profile"
-                              fill
-                              className="rounded-full object-cover"
-                            />
-                          </div>
-                          <h2 className="text-2xl font-bold mb-2">คุณสมชาย รักษ์โลก</h2>
-                          <p className="text-gray-600 dark:text-gray-400 mb-4">@green_warrior</p>
-                          <div className="space-y-4">
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">คาร์บอนฟุตพริ้นท์วันนี้</p>
-                              <p className="text-2xl font-bold text-green-600 dark:text-green-400">8.5 kg CO₂</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">คาร์บอนฟุตพริ้นท์เดือนนี้</p>
-                              <p className="text-2xl font-bold text-green-600 dark:text-green-400">280 kg CO₂</p>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Charts */}
-                    <Card className="md:col-span-2">
-                      <CardContent className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">การปล่อย CO₂ ตามเวลา</h3>
-                        <div className="h-[300px]">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={dailyData}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="date" />
-                              <YAxis />
-                              <Tooltip />
-                              <Line type="monotone" dataKey="emissions" stroke="#10b981" />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <PersonStanding logout={logout} session={session}></PersonStanding>
                 )
             }
-
-            {/* Achievements */}
-            <div className="mt-8">
-              <h3 className="text-xl font-bold mb-4 flex items-center">
-                <Trophy className="h-6 w-6 text-yellow-500 mr-2" />
-                ความสำเร็จของคุณ
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {achievements.map((achievement) => (
-                  <Card key={achievement.id}>
-                    <CardContent className="p-4">
-                      <h4 className="font-medium mb-2">{achievement.title}</h4>
-                      <Progress value={achievement.progress} className="h-2 mb-2" />
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {achievement.progress}% สำเร็จ
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
           </TabsContent>
 
           {/* Organization Profile */}
@@ -283,32 +196,38 @@ export default function ProfilePage() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
 
-            {/* Organization Goals */}
-            <div className="mt-8"></div>
-            <h3 className="text-xl font-bold mb-4">ประวัติการคำนวณคาร์บอนฟุตพริ้นท์รายวัน</h3>
-            <div className="overflow-x-auto">
-              <table className="table-auto w-full border-collapse border border-gray-300 dark:border-gray-700">
-                <thead>
-                  <tr className="bg-gray-100 dark:bg-gray-800">
-                    <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left">วันที่</th>
-                    <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left">ค่าที่คำนวณ (kg CO₂)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {org?.HistoryCalculator.map((history, index) => (
-                    <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-900">
-                      <td className="border border-gray-300 dark:border-gray-700 px-4 py-2">
-                        {new Date(history.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-700 px-4 py-2">
-                        {history.result?.toFixed(2) || '0.00'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Card className="md:col-span-3">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">การปล่อย CO₂ รายวัน (Daily Emissions)</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">วันที่</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">CO₂ (kg)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
+                        {org?.HistoryCalculator
+                          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                          .map((history, idx) => (
+                            <tr key={history.id || idx}>
+                              <td className="px-4 py-2 whitespace-nowrap">
+                                {new Date(history.createdAt).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap">
+                                {history.result !== undefined && history.result !== null
+                                  ? history.result.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                  : '-'}
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Notifications */}

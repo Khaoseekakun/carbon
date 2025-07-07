@@ -2,32 +2,52 @@ import { z } from 'zod';
 
 export const calculatorFormSchema = z.object({
   // Home
-  homePeople: z.number().min(1, { message: 'At least 1 person required' }),
-  homeSize: z.number().min(10, { message: 'Please enter a valid home size' }),
-  homeEnergySource: z.enum(['grid', 'renewable', 'mixed']),
-  homeHeatingType: z.enum(['gas', 'oil', 'electric', 'heatpump']),
-  renewablePercentage: z.number().min(0).max(100).optional(),
+  homePeople: z.number().min(1, { message: 'กรุณาระบุจำนวนสมาชิกอย่างน้อย 1 คน' }),
+  homeSize: z.number().min(10, { message: 'กรุณาระบุขนาดบ้านที่ถูกต้อง' }),
+  homeEnergySource: z.enum(['grid', 'renewable', 'mixed'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกแหล่งพลังงานหลัก' }) 
+  }),
+  homeHeatingType: z.enum(['gas', 'oil', 'electric', 'heatpump'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกแหล่งพลังงานสำหรับทำความร้อน' }) 
+  }),
+  renewablePercentage: z.number().min(0).max(100, { message: 'กรุณาระบุเปอร์เซ็นต์ระหว่าง 0-100' }).optional(),
   
   // Transportation
-  transportationCar: z.enum(['yes', 'no']),
-  carType: z.enum(['petrol', 'diesel', 'hybrid', 'electric']).optional(),
-  carMileage: z.number().min(0).optional(),
-  publicTransportFrequency: z.enum(['never', 'occasionally', 'regularly', 'daily']),
-  bikeWalkFrequency: z.enum(['never', 'occasionally', 'regularly', 'daily']),
+  transportationCar: z.enum(['yes', 'no'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกว่าคุณมีรถยนต์หรือไม่' }) 
+  }),
+  carType: z.enum(['petrol', 'diesel', 'hybrid', 'electric'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกประเภทรถยนต์' }) 
+  }).optional(),
+  carMileage: z.number().min(0, { message: 'กรุณาระบุระยะทางที่ถูกต้อง' }).optional(),
+  publicTransportFrequency: z.enum(['never', 'occasionally', 'regularly', 'daily'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกความถี่การใช้ขนส่งสาธารณะ' }) 
+  }),
+  bikeWalkFrequency: z.enum(['never', 'occasionally', 'regularly', 'daily'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกความถี่การเดิน/ปั่นจักรยาน' }) 
+  }),
   
   // Food
-  dietType: z.enum(['vegan', 'vegetarian', 'pescatarian', 'flexitarian', 'omnivore']),
-  localFoodPercentage: z.number().min(0).max(100),
-  foodWasteFrequency: z.enum(['never', 'sometimes', 'often', 'very_often']),
+  dietType: z.enum(['vegan', 'vegetarian', 'pescatarian', 'flexitarian', 'omnivore'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกประเภทอาหาร' }) 
+  }),
+  localFoodPercentage: z.number().min(0).max(100, { message: 'กรุณาระบุเปอร์เซ็นต์ระหว่าง 0-100' }),
+  foodWasteFrequency: z.enum(['never', 'sometimes', 'often', 'very_often'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกความถี่การทิ้งอาหาร' }) 
+  }),
   
   // Lifestyle
-  shoppingFrequency: z.enum(['minimal', 'moderate', 'frequent', 'extensive']),
-  recyclingHabit: z.enum(['never', 'sometimes', 'often', 'always']),
+  shoppingFrequency: z.enum(['minimal', 'moderate', 'frequent', 'extensive'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกความถี่การซื้อของ' }) 
+  }),
+  recyclingHabit: z.enum(['never', 'sometimes', 'often', 'always'], { 
+    errorMap: () => ({ message: 'กรุณาเลือกความถี่การรีไซเคิล' }) 
+  }),
   
   // Travel
-  flightsShort: z.number().min(0),
-  flightsMedium: z.number().min(0),
-  flightsLong: z.number().min(0),
+  flightsShort: z.number().min(0, { message: 'กรุณาระบุจำนวนเที่ยวบินที่ถูกต้อง' }),
+  flightsMedium: z.number().min(0, { message: 'กรุณาระบุจำนวนเที่ยวบินที่ถูกต้อง' }),
+  flightsLong: z.number().min(0, { message: 'กรุณาระบุจำนวนเที่ยวบินที่ถูกต้อง' }),
 });
 
 export type CalculatorFormValues = z.infer<typeof calculatorFormSchema>;

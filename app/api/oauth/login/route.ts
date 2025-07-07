@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
                         org_id: getCustomer.organizationId,
                         phone: getCustomer.phone,
                         picture: getCustomer.profilePicture,
-                        type: "person"
+                        type: "person",
                     }, process.env.JSONWEBTOKEN_SECRET!, {
                         expiresIn: '30m'
                     })
@@ -59,7 +59,8 @@ export async function POST(req: NextRequest) {
                             phone: getCustomer.phone,
                             picture: getCustomer.profilePicture,
                             token: token,
-                            type: "person"
+                            type: "person",
+                            username: getCustomer.username
                         },
                         message: "เข้าสู่ระบบสำเร็จ"
                     })
@@ -105,7 +106,8 @@ export async function POST(req: NextRequest) {
                             picture: getOrganization.org_logo,
                             org_id: getOrganization.id,
                             token: token,
-                            type: "organization"
+                            type: "organization",
+                            username: getOrganization.org_name
                         },
                         message: "เข้าสู่ระบบสำเร็จ"
                     })

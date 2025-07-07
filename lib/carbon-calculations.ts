@@ -18,6 +18,7 @@ interface Recommendation {
 
 // This is a simplified calculation model for demo purposes
 // In a real application, these would be more scientifically accurate
+// All emissions are calculated as daily values (kg CO₂e per day)
 export function calculateCarbonFootprint(data: CalculatorFormValues): CarbonResults {
   // Home emissions calculation
   let homeEmissions = calculateHomeEmissions(data);
@@ -90,7 +91,8 @@ function calculateHomeEmissions(data: CalculatorFormValues): number {
       break;
   }
   
-  return baseEmissions * peopleAdjustment * energySourceFactor * heatingFactor;
+  const annualEmissions = baseEmissions * peopleAdjustment * energySourceFactor * heatingFactor;
+  return annualEmissions / 365; // Convert to daily emissions
 }
 
 function calculateTransportEmissions(data: CalculatorFormValues): number {
@@ -113,7 +115,8 @@ function calculateTransportEmissions(data: CalculatorFormValues): number {
         emissionFactor = 0.05;
         break;
     }
-    emissions += data.carMileage * emissionFactor;
+    const dailyCarEmissions = (data.carMileage * emissionFactor) / 365; // Convert annual to daily
+    emissions += dailyCarEmissions;
   }
   
   // Public transport emissions
@@ -123,13 +126,13 @@ function calculateTransportEmissions(data: CalculatorFormValues): number {
       publicTransportEmissions = 0;
       break;
     case 'occasionally':
-      publicTransportEmissions = 200;
+      publicTransportEmissions = 200 / 365; // Convert annual to daily
       break;
     case 'regularly':
-      publicTransportEmissions = 600;
+      publicTransportEmissions = 600 / 365; // Convert annual to daily
       break;
     case 'daily':
-      publicTransportEmissions = 1200;
+      publicTransportEmissions = 1200 / 365; // Convert annual to daily
       break;
   }
   
@@ -156,7 +159,7 @@ function calculateTransportEmissions(data: CalculatorFormValues): number {
 }
 
 function calculateFoodEmissions(data: CalculatorFormValues): number {
-  // Base emissions by diet type
+  // Base emissions by diet type (annual values)
   let baseEmissions = 0;
   switch (data.dietType) {
     case 'vegan':
@@ -189,11 +192,12 @@ function calculateFoodEmissions(data: CalculatorFormValues): number {
   
   const wasteFactor = wasteFactors[data.foodWasteFrequency];
   
-  return baseEmissions * localFoodFactor * wasteFactor;
+  const annualEmissions = baseEmissions * localFoodFactor * wasteFactor;
+  return annualEmissions / 365; // Convert to daily emissions
 }
 
 function calculateLifestyleEmissions(data: CalculatorFormValues): number {
-  // Base emissions by shopping frequency
+  // Base emissions by shopping frequency (annual values)
   let baseEmissions = 0;
   switch (data.shoppingFrequency) {
     case 'minimal':
@@ -220,14 +224,15 @@ function calculateLifestyleEmissions(data: CalculatorFormValues): number {
   
   const recyclingFactor = recyclingFactors[data.recyclingHabit];
   
-  return baseEmissions * recyclingFactor;
+  const annualEmissions = baseEmissions * recyclingFactor;
+  return annualEmissions / 365; // Convert to daily emissions
 }
 
 function calculateTravelEmissions(data: CalculatorFormValues): number {
-  // Flight emissions
-  const shortFlightEmissions = data.flightsShort * 500; // kg CO2e per short flight
-  const mediumFlightEmissions = data.flightsMedium * 1200; // kg CO2e per medium flight
-  const longFlightEmissions = data.flightsLong * 2500; // kg CO2e per long flight
+  // Flight emissions (convert annual flights to daily average)
+  const shortFlightEmissions = (data.flightsShort * 500) / 365; // kg CO2e per day
+  const mediumFlightEmissions = (data.flightsMedium * 1200) / 365; // kg CO2e per day
+  const longFlightEmissions = (data.flightsLong * 2500) / 365; // kg CO2e per day
   
   return shortFlightEmissions + mediumFlightEmissions + longFlightEmissions;
 }
@@ -235,7 +240,6 @@ function calculateTravelEmissions(data: CalculatorFormValues): number {
 function generateRecommendations(data: CalculatorFormValues, results: CarbonResults): Recommendation[] {
   const recommendations: Recommendation[] = [];
   
-  // Create an array of emission categories sorted by impact
   const categories = [
     { name: 'home', emissions: results.homeEmissions },
     { name: 'transport', emissions: results.transportEmissions },
@@ -244,7 +248,6 @@ function generateRecommendations(data: CalculatorFormValues, results: CarbonResu
     { name: 'travel', emissions: results.travelEmissions }
   ].sort((a, b) => b.emissions - a.emissions);
   
-  // Generate recommendations for the top 3 emission categories
   for (let i = 0; i < Math.min(3, categories.length); i++) {
     const category = categories[i];
     
@@ -252,49 +255,49 @@ function generateRecommendations(data: CalculatorFormValues, results: CarbonResu
       case 'home':
         if (data.homeEnergySource === 'grid') {
           recommendations.push({
-            title: 'Switch to Renewable Energy',
-            description: 'Consider switching to a renewable energy provider for your home electricity.',
-            potentialReduction: 'Up to 60% reduction in home emissions'
+            title: 'เปลี่ยนไปใช้พลังงานหมุนเวียน',
+            description: 'ลองเปลี่ยนไปใช้ผู้ให้บริการไฟฟ้าพลังงานหมุนเวียนสำหรับบ้านของคุณ',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากบ้านได้สูงสุด 60% ต่อวัน'
           });
         }
         
         if (data.homeHeatingType === 'oil' || data.homeHeatingType === 'gas') {
           recommendations.push({
-            title: 'Upgrade Your Heating System',
-            description: 'Consider switching to a heat pump or more efficient heating system.',
-            potentialReduction: 'Up to 70% reduction in heating emissions'
+            title: 'อัปเกรดระบบทำความร้อนในบ้าน',
+            description: 'ลองเปลี่ยนไปใช้ปั๊มความร้อนหรือระบบทำความร้อนที่มีประสิทธิภาพมากขึ้น',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากการทำความร้อนได้สูงสุด 70% ต่อวัน'
           });
         }
         
         recommendations.push({
-          title: 'Improve Home Insulation',
-          description: 'Better insulation can significantly reduce the energy needed to heat and cool your home.',
-          potentialReduction: '20-30% reduction in home energy use'
+          title: 'ปรับปรุงฉนวนกันความร้อนในบ้าน',
+          description: 'ฉนวนกันความร้อนที่ดีขึ้นช่วยลดพลังงานที่ใช้ในการทำความร้อนและความเย็นในบ้านได้มาก',
+          potentialReduction: 'ลดการใช้พลังงานในบ้านได้ 20-30% ต่อวัน'
         });
         break;
         
       case 'transport':
         if (data.transportationCar === 'yes' && (data.carType === 'petrol' || data.carType === 'diesel')) {
           recommendations.push({
-            title: 'Consider an Electric or Hybrid Vehicle',
-            description: 'When you next change your car, an electric or hybrid model will significantly reduce your emissions.',
-            potentialReduction: 'Up to 70% reduction in vehicle emissions'
+            title: 'พิจารณาใช้รถยนต์ไฟฟ้าหรือไฮบริด',
+            description: 'เมื่อเปลี่ยนรถคันใหม่ ลองเลือกใช้รถยนต์ไฟฟ้าหรือไฮบริดเพื่อลดการปล่อยคาร์บอน',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากรถยนต์ได้สูงสุด 70% ต่อวัน'
           });
         }
         
         if (data.bikeWalkFrequency === 'never' || data.bikeWalkFrequency === 'occasionally') {
           recommendations.push({
-            title: 'Walk or Cycle for Short Trips',
-            description: 'Replace short car journeys with walking or cycling when possible.',
-            potentialReduction: '10-20% reduction in transport emissions'
+            title: 'เดินหรือปั่นจักรยานสำหรับการเดินทางระยะสั้น',
+            description: 'เปลี่ยนการเดินทางระยะสั้นจากการขับรถเป็นการเดินหรือปั่นจักรยานเมื่อเป็นไปได้',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากการเดินทางได้ 10-20% ต่อวัน'
           });
         }
         
         if (data.publicTransportFrequency === 'never' || data.publicTransportFrequency === 'occasionally') {
           recommendations.push({
-            title: 'Use Public Transportation More Often',
-            description: 'Using buses, trains or other public transport reduces your carbon footprint compared to driving alone.',
-            potentialReduction: '30-40% reduction in commuting emissions'
+            title: 'ใช้ขนส่งสาธารณะบ่อยขึ้น',
+            description: 'การใช้รถโดยสาร รถไฟ หรือขนส่งสาธารณะอื่น ๆ ช่วยลดคาร์บอนฟุตพริ้นท์เมื่อเทียบกับการขับรถคนเดียว',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากการเดินทางประจำวันได้ 30-40%'
           });
         }
         break;
@@ -302,25 +305,25 @@ function generateRecommendations(data: CalculatorFormValues, results: CarbonResu
       case 'food':
         if (data.dietType === 'omnivore') {
           recommendations.push({
-            title: 'Reduce Meat Consumption',
-            description: 'Try having one or more meat-free days each week to reduce your food emissions.',
-            potentialReduction: '20-30% reduction in food emissions'
+            title: 'ลดการบริโภคเนื้อสัตว์',
+            description: 'ลองมีวันปลอดเนื้อสัตว์สัปดาห์ละหนึ่งวันหรือมากกว่าเพื่อลดการปล่อยคาร์บอนจากอาหาร',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากอาหารได้ 20-30% ต่อวัน'
           });
         }
         
         if (data.localFoodPercentage < 70) {
           recommendations.push({
-            title: 'Buy More Local and Seasonal Food',
-            description: "Food that doesn't travel far has a lower carbon footprint. Shop at farmers markets or join a CSA.",
-            potentialReduction: '10-15% reduction in food emissions'
+            title: 'เลือกซื้ออาหารท้องถิ่นและตามฤดูกาลมากขึ้น',
+            description: 'อาหารที่เดินทางมาสั้นกว่ามีคาร์บอนฟุตพริ้นท์ต่ำกว่า ลองซื้อที่ตลาดเกษตรกรหรือเข้าร่วมโครงการ CSA',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากอาหารได้ 10-15% ต่อวัน'
           });
         }
         
         if (data.foodWasteFrequency === 'often' || data.foodWasteFrequency === 'very_often') {
           recommendations.push({
-            title: 'Reduce Food Waste',
-            description: 'Plan meals, store food properly, and use leftovers to reduce the amount of food you throw away.',
-            potentialReduction: 'Up to 25% reduction in food emissions'
+            title: 'ลดขยะอาหาร',
+            description: 'วางแผนมื้ออาหาร เก็บอาหารอย่างเหมาะสม และใช้ของเหลือเพื่อลดขยะอาหาร',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากอาหารได้สูงสุด 25% ต่อวัน'
           });
         }
         break;
@@ -328,17 +331,17 @@ function generateRecommendations(data: CalculatorFormValues, results: CarbonResu
       case 'lifestyle':
         if (data.shoppingFrequency === 'frequent' || data.shoppingFrequency === 'extensive') {
           recommendations.push({
-            title: 'Practice Mindful Consumption',
-            description: 'Before buying something new, consider if you really need it and if there are second-hand options.',
-            potentialReduction: '20-40% reduction in consumption emissions'
+            title: 'บริโภคอย่างมีสติ',
+            description: 'ก่อนซื้อของใหม่ ลองพิจารณาว่าจำเป็นจริงหรือไม่ และมีตัวเลือกมือสองหรือไม่',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากการบริโภคได้ 20-40% ต่อวัน'
           });
         }
         
         if (data.recyclingHabit === 'never' || data.recyclingHabit === 'sometimes') {
           recommendations.push({
-            title: 'Improve Recycling Habits',
-            description: 'Set up a convenient recycling system at home and learn what can be recycled in your area.',
-            potentialReduction: 'Up to 30% reduction in waste emissions'
+            title: 'ปรับปรุงนิสัยการรีไซเคิล',
+            description: 'จัดระบบรีไซเคิลที่บ้านให้สะดวก และศึกษาว่าสิ่งใดรีไซเคิลได้ในพื้นที่ของคุณ',
+            potentialReduction: 'ลดการปล่อยคาร์บอนจากขยะได้สูงสุด 30% ต่อวัน'
           });
         }
         break;
@@ -346,36 +349,35 @@ function generateRecommendations(data: CalculatorFormValues, results: CarbonResu
       case 'travel':
         if (data.flightsLong > 0 || data.flightsMedium > 1) {
           recommendations.push({
-            title: 'Reduce Air Travel',
-            description: 'Consider alternatives to flying or combine trips to reduce the number of flights you take.',
-            potentialReduction: 'Each long-haul flight avoided saves ~2500kg CO₂e'
+            title: 'ลดการเดินทางด้วยเครื่องบิน',
+            description: 'ลองหาทางเลือกอื่นแทนการบิน หรือรวมทริปเพื่อให้บินน้อยลง',
+            potentialReduction: 'หลีกเลี่ยงเที่ยวบินระยะไกล 1 เที่ยว ช่วยลดคาร์บอนได้ ~6.8 กก. CO₂e ต่อวัน'
           });
         }
         
         recommendations.push({
-          title: 'Offset Your Essential Flights',
-          description: "For flights you can't avoid, consider purchasing high-quality carbon offsets.",
-          potentialReduction: 'Up to 100% offset of flight emissions'
+          title: 'ชดเชยคาร์บอนจากเที่ยวบินที่จำเป็น',
+          description: 'สำหรับเที่ยวบินที่หลีกเลี่ยงไม่ได้ ลองซื้อคาร์บอนเครดิตคุณภาพสูงเพื่อชดเชย',
+          potentialReduction: 'ชดเชยคาร์บอนจากการบินได้สูงสุด 100% ต่อวัน'
         });
         break;
     }
   }
   
-  // Add general recommendations if we don't have enough specific ones
+  // เพิ่มคำแนะนำทั่วไปหากยังมีไม่เพียงพอ
   if (recommendations.length < 4) {
     recommendations.push({
-      title: 'Switch to Energy-Efficient Appliances',
-      description: 'When replacing appliances, choose those with high energy efficiency ratings.',
-      potentialReduction: '10-40% reduction in appliance energy use'
+      title: 'เปลี่ยนไปใช้อุปกรณ์ไฟฟ้าประหยัดพลังงาน',
+      description: 'เมื่อเปลี่ยนอุปกรณ์ไฟฟ้าใหม่ ควรเลือกที่มีฉลากประหยัดพลังงาน',
+      potentialReduction: 'ลดการใช้พลังงานจากเครื่องใช้ไฟฟ้าได้ 10-40% ต่อวัน'
     });
     
     recommendations.push({
-      title: 'Install Smart Home Technology',
-      description: 'Smart thermostats and energy monitors can help optimize your energy use.',
-      potentialReduction: '10-15% reduction in home energy use'
+      title: 'ติดตั้งเทคโนโลยีสมาร์ทโฮม',
+      description: 'เทอร์โมสตัทอัจฉริยะและอุปกรณ์ตรวจสอบพลังงานช่วยให้ใช้พลังงานอย่างมีประสิทธิภาพ',
+      potentialReduction: 'ลดการใช้พลังงานในบ้านได้ 10-15% ต่อวัน'
     });
   }
-  
   // Limit to 6 recommendations
   return recommendations.slice(0, 6);
 }

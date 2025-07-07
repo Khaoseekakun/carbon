@@ -43,32 +43,32 @@ export default function CalculatorForm() {
     resolver: zodResolver(calculatorFormSchema),
     defaultValues: {
       // Home
-      homePeople: 1,
-      homeSize: 100,
-      homeEnergySource: 'grid',
-      homeHeatingType: 'gas',
-      renewablePercentage: 0,
+      homePeople: undefined,
+      homeSize: undefined,
+      homeEnergySource: undefined,
+      homeHeatingType: undefined,
+      renewablePercentage: undefined,
 
       // Transportation
-      transportationCar: 'no',
+      transportationCar: undefined,
       carType: undefined,
-      carMileage: 0,
-      publicTransportFrequency: 'never',
-      bikeWalkFrequency: 'never',
+      carMileage: undefined,
+      publicTransportFrequency: undefined,
+      bikeWalkFrequency: undefined,
 
       // Food
-      dietType: 'omnivore',
-      localFoodPercentage: 50,
-      foodWasteFrequency: 'sometimes',
+      dietType: undefined,
+      localFoodPercentage: undefined,
+      foodWasteFrequency: undefined,
 
       // Lifestyle
-      shoppingFrequency: 'moderate',
-      recyclingHabit: 'sometimes',
+      shoppingFrequency: undefined,
+      recyclingHabit: undefined,
 
       // Travel
-      flightsShort: 0,
-      flightsMedium: 0,
-      flightsLong: 0,
+      flightsShort: undefined,
+      flightsMedium: undefined,
+      flightsLong: undefined,
     },
   });
 
@@ -88,15 +88,66 @@ export default function CalculatorForm() {
     setProgressPercentage(newProgress);
   };
 
-  // Handle "Next" button click
-  const handleNext = () => {
+  // Define required fields for each tab
+  const getRequiredFieldsForTab = (tabId: string): string[] => {
+    switch (tabId) {
+      case 'home':
+        return ['homePeople', 'homeSize', 'homeEnergySource', 'homeHeatingType'];
+      case 'transportation':
+        return ['transportationCar', 'publicTransportFrequency', 'bikeWalkFrequency'];
+      case 'food':
+        return ['dietType', 'localFoodPercentage', 'foodWasteFrequency'];
+      case 'lifestyle':
+        return ['shoppingFrequency', 'recyclingHabit'];
+      case 'travel':
+        return ['flightsShort', 'flightsMedium', 'flightsLong'];
+      default:
+        return [];
+    }
+  };
+
+  // Handle "Next" button click with validation
+  const handleNext = async () => {
     const currentIndex = formTabs.findIndex(tab => tab.id === activeTab);
+    const requiredFields = getRequiredFieldsForTab(activeTab) as (keyof z.infer<typeof calculatorFormSchema>)[];
+    
+    // Validate current tab's required fields
+    const isValid = await form.trigger(requiredFields);
+    
+    if (!isValid) {
+      // If validation fails, don't proceed to next tab
+      return;
+    }
+
+    // Additional validation for conditional fields
+    if (activeTab === 'home') {
+      const homeEnergySource = form.getValues('homeEnergySource');
+      if (homeEnergySource === 'mixed') {
+        const renewableValid = await form.trigger(['renewablePercentage']);
+        if (!renewableValid) return;
+      }
+    }
+
+    if (activeTab === 'transportation') {
+      const transportationCar = form.getValues('transportationCar');
+      if (transportationCar === 'yes') {
+        const carFieldsValid = await form.trigger(['carType', 'carMileage']);
+        if (!carFieldsValid) return;
+      }
+    }
+
+    // If all validations pass, proceed to next tab or submit
     if (currentIndex < formTabs.length - 1) {
       const nextTab = formTabs[currentIndex + 1].id;
       handleTabChange(nextTab);
     } else {
       form.handleSubmit(onSubmit)();
     }
+  };
+
+  // Clear field error when user starts interacting
+  const clearFieldError = (fieldName: keyof z.infer<typeof calculatorFormSchema>) => {
+    form.clearErrors(fieldName);
   };
 
   // Handle "Back" button click
@@ -152,7 +203,16 @@ export default function CalculatorForm() {
                       <FormItem>
                         <FormLabel>จำนวนสมาชิก</FormLabel>
                         <FormControl>
-                          <Input type="number" min={1} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                          <Input 
+                            type="number" 
+                            min={1} 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(Number(e.target.value));
+                              clearFieldError('homePeople');
+                            }}
+                            onFocus={() => clearFieldError('homePeople')}
+                          />
                         </FormControl>
                         <FormDescription>จำนวนคนทั้งหมดที่อยู่ในบ้านของคุณ</FormDescription>
                         <FormMessage />
@@ -167,7 +227,16 @@ export default function CalculatorForm() {
                       <FormItem>
                         <FormLabel>ขนาดบ้าน (ตร.ม.)</FormLabel>
                         <FormControl>
-                          <Input type="number" min={10} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                          <Input 
+                            type="number" 
+                            min={10} 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(Number(e.target.value));
+                              clearFieldError('homeSize');
+                            }}
+                            onFocus={() => clearFieldError('homeSize')}
+                          />
                         </FormControl>
                         <FormDescription>ขนาดบ้านของคุณโดยประมาณเป็นตารางเมตร</FormDescription>
                         <FormMessage />
@@ -184,7 +253,10 @@ export default function CalculatorForm() {
                       <FormLabel>แหล่งพลังงานหลัก</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearFieldError('homeEnergySource');
+                          }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
                         >
@@ -221,7 +293,10 @@ export default function CalculatorForm() {
                       <FormLabel>แหล่งพลังงานหลักสำหรับทำความร้อน</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearFieldError('homeHeatingType');
+                          }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
                         >
@@ -267,9 +342,12 @@ export default function CalculatorForm() {
                           <Slider
                             min={0}
                             max={100}
-                            step={5}
+                            step={1}
                             defaultValue={[field.value ?? 0]}
-                            onValueChange={(vals) => field.onChange(vals[0])}
+                            onValueChange={(vals) => {
+                              field.onChange(vals[0]);
+                              clearFieldError('renewablePercentage');
+                            }}
                             className="w-full"
                           />
                         </FormControl>
@@ -292,7 +370,10 @@ export default function CalculatorForm() {
                       <FormLabel>คุณมีหรือใช้รถยนต์เป็นประจำหรือไม่?</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearFieldError('transportationCar');
+                          }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
                         >
@@ -325,7 +406,10 @@ export default function CalculatorForm() {
                           <FormLabel>คุณใช้รถยนต์ประเภทใด?</FormLabel>
                           <FormControl>
                             <RadioGroup
-                              onValueChange={field.onChange}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                clearFieldError('carType');
+                              }}
                               defaultValue={field.value}
                               className="flex flex-col space-y-1"
                             >
@@ -367,7 +451,16 @@ export default function CalculatorForm() {
                         <FormItem>
                           <FormLabel>ระยะทางที่ขับรถต่อปี (กิโลเมตร)</FormLabel>
                           <FormControl>
-                            <Input type="number" min={0} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                            <Input 
+                              type="number" 
+                              min={0} 
+                              {...field} 
+                              onChange={(e) => {
+                                field.onChange(Number(e.target.value));
+                                clearFieldError('carMileage');
+                              }}
+                              onFocus={() => clearFieldError('carMileage')}
+                            />
                           </FormControl>
                           <FormDescription>
                             ระยะทางโดยประมาณที่คุณขับรถในแต่ละปี
@@ -387,7 +480,10 @@ export default function CalculatorForm() {
                       <FormLabel>คุณใช้ระบบขนส่งสาธารณะบ่อยแค่ไหน?</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearFieldError('publicTransportFrequency');
+                          }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
                         >
@@ -430,7 +526,10 @@ export default function CalculatorForm() {
                       <FormLabel>คุณเดินหรือปั่นจักรยานแทนการใช้ยานพาหนะบ่อยแค่ไหน?</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearFieldError('bikeWalkFrequency');
+                          }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
                         >
@@ -475,7 +574,10 @@ export default function CalculatorForm() {
                       <FormLabel>อาหารของคุณเป็นแบบใด?</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearFieldError('dietType');
+                          }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
                         >
@@ -526,9 +628,12 @@ export default function CalculatorForm() {
                         <Slider
                           min={0}
                           max={100}
-                          step={10}
+                          step={1}
                           defaultValue={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
+                          onValueChange={(vals) => {
+                            field.onChange(vals[0]);
+                            clearFieldError('localFoodPercentage');
+                          }}
                           className="w-full"
                         />
                       </FormControl>
@@ -548,7 +653,10 @@ export default function CalculatorForm() {
                       <FormLabel>คุณทิ้งอาหารที่ไม่ได้กินบ่อยแค่ไหน?</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearFieldError('foodWasteFrequency');
+                          }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
                         >
@@ -593,7 +701,10 @@ export default function CalculatorForm() {
                       <FormLabel>คุณมีพฤติกรรมการซื้อของที่ไม่ใช่อาหารอย่างไร?</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearFieldError('shoppingFrequency');
+                          }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
                         >
@@ -636,7 +747,10 @@ export default function CalculatorForm() {
                       <FormLabel>คุณรีไซเคิลบ่อยแค่ไหน?</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            clearFieldError('recyclingHabit');
+                          }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
                         >
@@ -688,7 +802,16 @@ export default function CalculatorForm() {
                       <FormItem>
                         <FormLabel>เที่ยวบินระยะสั้น (ต่ำกว่า 3 ชั่วโมง)</FormLabel>
                         <FormControl>
-                          <Input type="number" min={0} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                          <Input 
+                            type="number" 
+                            min={0} 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(Number(e.target.value));
+                              clearFieldError('flightsShort');
+                            }}
+                            onFocus={() => clearFieldError('flightsShort')}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -702,7 +825,16 @@ export default function CalculatorForm() {
                       <FormItem>
                         <FormLabel>เที่ยวบินระยะกลาง (3-6 ชั่วโมง)</FormLabel>
                         <FormControl>
-                          <Input type="number" min={0} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                          <Input 
+                            type="number" 
+                            min={0} 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(Number(e.target.value));
+                              clearFieldError('flightsMedium');
+                            }}
+                            onFocus={() => clearFieldError('flightsMedium')}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -716,7 +848,16 @@ export default function CalculatorForm() {
                       <FormItem>
                         <FormLabel>เที่ยวบินระยะไกล (มากกว่า 6 ชั่วโมง)</FormLabel>
                         <FormControl>
-                          <Input type="number" min={0} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                          <Input 
+                            type="number" 
+                            min={0} 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(Number(e.target.value));
+                              clearFieldError('flightsLong');
+                            }}
+                            onFocus={() => clearFieldError('flightsLong')}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
                 message: "Unauthorized2"
             }, { status: 401 });
         }
-        
+
         if (typeof verify === "string") {
             return NextResponse.json({
                 status: false,
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
             })
         }
 
-        if(verify.id != Number(user_id)) {
+        if (verify.id != Number(user_id)) {
             return NextResponse.json({
                 status: false,
                 message: "Unauthorized5"
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
                 createdAt: 'desc'
             },
         })
-        
+
         const today = new Date();
         const startOfWeek = new Date(today);
         startOfWeek.setDate(today.getDate() - today.getDay());
@@ -95,5 +95,134 @@ export async function GET(req: NextRequest) {
             { status: false, error: (error as Error).message },
             { status: 500 }
         );
+    }
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        const token = req.headers.get("authorization")?.split(" ")[1];
+        if (!token) {
+            return NextResponse.json({
+                status: false,
+                message: "Unauthorized1"
+            }, { status: 401 });
+        }
+
+        const verify = verifyToken(token);
+        if (!verify) {
+            return NextResponse.json({
+                status: false,
+                message: "Unauthorized2"
+            }, { status: 401 });
+        }
+
+        if (typeof verify === "string") {
+            return NextResponse.json({
+                status: false,
+                message: "Unauthorized3"
+            }, { status: 401 });
+        }
+        if (verify.type !== "person") {
+            return NextResponse.json({
+                status: false,
+                message: "Unauthorized4"
+            }, { status: 401 });
+        }
+
+        // Get user_id from URL path
+        const user_id = req.nextUrl.pathname.split('/')[3];
+        if (isNaN(Number(user_id))) {
+            return NextResponse.json({
+                status: false,
+                message: "Customer ID is NAN"
+            }, { status: 400 });
+        }
+
+        // Verify that the token user ID matches the URL user ID
+        if (verify.id != Number(user_id)) {
+            return NextResponse.json({
+                status: false,
+                message: "Unauthorized5"
+            }, { status: 401 });
+        }
+
+        // Verify customer exists
+        const customer_data = await prisma.customers.findFirst({
+            where: {
+                id: Number(user_id)
+            }
+        });
+
+        if (!customer_data) {
+            return NextResponse.json({
+                status: false,
+                message: "Customer not found"
+            }, { status: 404 });
+        }
+
+        // Parse request body
+        const body = await req.json();
+        const { 
+            userId, 
+            result, 
+            homeEmissions, 
+            transportEmissions, 
+            foodEmissions, 
+            lifestyleEmissions, 
+            travelEmissions 
+        } = body;
+
+        // Validate required fields
+        if (!userId || result === undefined) {
+            return NextResponse.json({
+                status: false,
+                message: "Missing required fields: userId and result"
+            }, { status: 400 });
+        }
+
+        // Additional check: ensure the userId in body matches the verified user
+        if (userId !== verify.id) {
+            return NextResponse.json({
+                status: false,
+                message: "User ID mismatch"
+            }, { status: 401 });
+        }
+
+        // Prepare calculation data to store as JSON
+        const calculationData = {
+            totalEmissions: result,
+            homeEmissions: homeEmissions || 0,
+            transportEmissions: transportEmissions || 0,
+            foodEmissions: foodEmissions || 0,
+            lifestyleEmissions: lifestyleEmissions || 0,
+            travelEmissions: travelEmissions || 0,
+            timestamp: new Date().toISOString()
+        };
+
+        // Save to database
+        const historyRecord = await prisma.historyCalculator.create({
+            data: {
+                customerId: Number(user_id),
+                calculation: JSON.stringify(calculationData),
+                result: Number(result)
+            }
+        });
+
+        return NextResponse.json({
+            status: true,
+            message: "Calculation history saved successfully",
+            data: {
+                id: historyRecord.id,
+                totalEmissions: result,
+                createdAt: historyRecord.createdAt
+            }
+        }, { status: 201 });
+
+    } catch (error) {
+        console.error("Error saving calculation history:", error);
+        return NextResponse.json({
+            status: false,
+            message: "Internal Server Error"
+        }, { status: 500 });
     }
 }

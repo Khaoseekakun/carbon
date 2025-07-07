@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -87,7 +87,8 @@ export default function LoginForm() {
             org_id: userData.org_id ?? null,
             phone: userData.phone,
             picture: userData.picture,
-            type: userData.type
+            type: userData.type,
+            username: userData.username
           }));
 
           setModalData({
