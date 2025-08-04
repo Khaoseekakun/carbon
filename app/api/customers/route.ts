@@ -57,7 +57,8 @@ export async function POST(req: NextRequest) {
                     connect: {
                         id: Number(body.org_select)
                     }
-                }
+                },
+                organizationId: Number(body.org_select),
             }
         });
         return NextResponse.json({

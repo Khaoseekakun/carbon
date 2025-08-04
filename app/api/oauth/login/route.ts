@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
                         expiresIn: '30m'
                     })
 
-                    return NextResponse.json({
+                    const responseData = {
                         status: true,
                         data: {
                             id: getOrganization.id,
@@ -110,7 +110,9 @@ export async function POST(req: NextRequest) {
                             username: getOrganization.org_name
                         },
                         message: "เข้าสู่ระบบสำเร็จ"
-                    })
+                    }
+                    console.log(responseData)
+                    return NextResponse.json(responseData)
                 }
                 return NextResponse.json({
                     status: false,

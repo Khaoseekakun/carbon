@@ -263,7 +263,7 @@ export default function CalculatorResults({ data, onReset }: CalculatorResultsPr
               <Button
                 variant="outline"
                 onClick={handleSaveDataToOrganization}
-                className="flex items-center gap-2 w-full md:w-auto"
+                className="flex items-center gap-2 w-full md:w-auto bg-green-500 dark:bg-green-600 border-green-700 dark:border-green-900 text-green-900 dark:text-white"
               >
                 <Download className="h-4 w-4" />
                 บันทึกข้อมูลการคำนวณ
