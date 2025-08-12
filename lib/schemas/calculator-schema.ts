@@ -2,52 +2,43 @@ import { z } from 'zod';
 
 export const calculatorFormSchema = z.object({
   // Home
-  homePeople: z.number().min(1, { message: 'กรุณาระบุจำนวนสมาชิกอย่างน้อย 1 คน' }),
-  homeSize: z.number().min(10, { message: 'กรุณาระบุขนาดบ้านที่ถูกต้อง' }),
-  homeEnergySource: z.enum(['grid', 'renewable', 'mixed'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกแหล่งพลังงานหลัก' }) 
+  home_power_type: z.number().min(1, { message: 'กรุณาระบุระบบไฟฟ้าของบ้าน' }),
+  home_electricity_units_used: z.number().min(10, { message: 'กรุณาระบุบจำนวนหน่วยการใช้ไฟฟ้าของบ้าน' }),
+  home_gaebage_is_thrown_away: z.number().min(10, { message: 'กรุณาระบุบปริมาณการทิ้งขยะ' }),
+  home_wood_burning_frequency: z.enum(['never', 'occasionally', 'regularly', 'daily'], {
+    errorMap: () => ({ message: 'กรุณาเลือกความถี่การเผาไม้' })
   }),
-  homeHeatingType: z.enum(['gas', 'oil', 'electric', 'heatpump'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกแหล่งพลังงานสำหรับทำความร้อน' }) 
+
+  // Public Transport
+  car_power_type: z.enum(['electric', 'oil', 'hybrid'], {
+    errorMap: () => ({ message: 'ระบุประเภทพลังงานของพาหนะ' })
   }),
-  renewablePercentage: z.number().min(0).max(100, { message: 'กรุณาระบุเปอร์เซ็นต์ระหว่าง 0-100' }).optional(),
-  
-  // Transportation
-  transportationCar: z.enum(['yes', 'no'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกว่าคุณมีรถยนต์หรือไม่' }) 
-  }),
-  carType: z.enum(['petrol', 'diesel', 'hybrid', 'electric'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกประเภทรถยนต์' }) 
+
+  car_oil_type: z.enum(['Diesel 91', 'Diesel 95', 'ALPHA-X', 'Gasohol E20', 'Gasohol E85', 'Bensin'], {
+    errorMap: () => ({ message: 'ระบุประเภทน้ำมันของรถยนต์' })
   }).optional(),
-  carMileage: z.number().min(0, { message: 'กรุณาระบุระยะทางที่ถูกต้อง' }).optional(),
-  publicTransportFrequency: z.enum(['never', 'occasionally', 'regularly', 'daily'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกความถี่การใช้ขนส่งสาธารณะ' }) 
+  car_brand: z.string().min(1, { message: 'กรุณาระบุยี่ห้อรถยนต์' }).optional(),
+  car_model: z.string().min(1, { message: 'กรุณาระบุรุ่นรถยนต์' }).optional(),
+
+  motorcyle_brand: z.string().min(1, { message: 'กรุณาระบุยี่ห้อรถมอเตอร์ไซค์' }).optional(),
+  motorcycle_model: z.string().min(1, { message: 'กรุณาระบุรุ่นรถมอเตอร์ไซค์' }).optional(),
+  motorcycle_power_type: z.enum(['electric', 'oil', 'hybrid'], {
+    errorMap: () => ({ message: 'ระบุประเภทพลังงานของรถมอเตอร์ไซค์' })
   }),
-  bikeWalkFrequency: z.enum(['never', 'occasionally', 'regularly', 'daily'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกความถี่การเดิน/ปั่นจักรยาน' }) 
+
+  motorcycle_oil_type: z.enum(['Bensin 91', 'Bensin 95', 'Gasohol 95', 'Gasohol 91', 'Gasohol 97', 'Gasohol E20', 'Gasohol E85'], {
+    errorMap: () => ({ message: 'ระบุประเภทน้ำมันของรถมอเตอร์ไซค์' })
+  }).optional(),
+  motorcycle_used_km: z.number().min(1, { message: 'กรุณาระบุระยะทางการใช้รถมอเตอร์ไซค์' }).optional(),
+
+  // flight
+  use_traverl_air: z.number().min(1, { message: 'ระบุจำนวนการเดินทางของคุณวันนี้' }),
+  travel_air_brand: z.string().optional(),
+  travel_air_model: z.string().optional(),
+  travel_distance: z.number().min(1, { message: 'กรุณาระบุระยะทางการเดินทาง' }),
+  travel_transport_oil_type: z.enum(['SAF', 'AVGAS', 'Jet Fuel'], {
+    errorMap: () => ({ message: 'ระบุประเภทน้ำมันของเครื่องบิน' })
   }),
-  
-  // Food
-  dietType: z.enum(['vegan', 'vegetarian', 'pescatarian', 'flexitarian', 'omnivore'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกประเภทอาหาร' }) 
-  }),
-  localFoodPercentage: z.number().min(0).max(100, { message: 'กรุณาระบุเปอร์เซ็นต์ระหว่าง 0-100' }),
-  foodWasteFrequency: z.enum(['never', 'sometimes', 'often', 'very_often'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกความถี่การทิ้งอาหาร' }) 
-  }),
-  
-  // Lifestyle
-  shoppingFrequency: z.enum(['minimal', 'moderate', 'frequent', 'extensive'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกความถี่การซื้อของ' }) 
-  }),
-  recyclingHabit: z.enum(['never', 'sometimes', 'often', 'always'], { 
-    errorMap: () => ({ message: 'กรุณาเลือกความถี่การรีไซเคิล' }) 
-  }),
-  
-  // Travel
-  flightsShort: z.number().min(0, { message: 'กรุณาระบุจำนวนเที่ยวบินที่ถูกต้อง' }),
-  flightsMedium: z.number().min(0, { message: 'กรุณาระบุจำนวนเที่ยวบินที่ถูกต้อง' }),
-  flightsLong: z.number().min(0, { message: 'กรุณาระบุจำนวนเที่ยวบินที่ถูกต้อง' }),
 });
 
 export type CalculatorFormValues = z.infer<typeof calculatorFormSchema>;

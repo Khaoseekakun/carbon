@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import CalculatorForm from '@/components/calculator/calculator-form';
-
+import CalculatorNewForm from '@/components/calculator/calculator-new-form';
 export const metadata: Metadata = {
   title: 'Carbon Footprint Calculator',
   description: 'Calculate your carbon footprint and learn how to reduce your environmental impact',
@@ -18,8 +18,10 @@ export default function CalculatorPage() {
             คำนวณคาร์บอนฟุตพริ้นท์ของคุณในหลายหมวดหมู่ ตอบคำถามด้านล่างเพื่อรับการประเมินส่วนบุคคล
           </p>
         </div>
+
+        <CalculatorNewForm/>
         
-        <CalculatorForm />
+        {/* <CalculatorForm /> */}
       </div>
     </div>
   );

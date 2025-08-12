@@ -76,3 +76,138 @@ model Organization {
 
   @@map("organizations")
 }
+
+model CarBrands {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  country     String?
+  description String?
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  CarModels CarModels[]
+
+  @@map("car_brands")
+}
+
+model CarModels {
+  id          Int     @id @default(autoincrement())
+  brandId     Int
+  name        String
+  description String?
+
+  power_type               String?
+  oil_type                 CarOilTypes[]
+  oil_carbon_per_unit      Float?        @default(0.0)
+  electric_carbon_per_unit Float?        @default(0.0)
+
+  brand            CarBrands @relation(fields: [brandId], references: [id])
+  cubic_centimeter Int?      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("car_models")
+}
+
+model MotorcycleBrands {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  country     String?
+  description String?
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  MotorcycleModels MotorcycleModels[]
+
+  @@map("motorcycle_brands")
+}
+
+model MotorcycleModels {
+  id               Int              @id @default(autoincrement())
+  brandId          Int
+  name             String
+  description      String?
+  brand            MotorcycleBrands @relation(fields: [brandId], references: [id])
+  cubic_centimeter Int?             @default(0)
+
+  power_type               String?
+  electric_carbon_per_unit Float?              @default(0.0)
+  oil_carbon_per_unit      Float?              @default(0.0)
+  oil_type                 MotorBikeOilTypes[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("motorcycle_models")
+}
+
+model PublicTransportTypes {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  description   String?
+  carbon_per_km Float         @default(0.0)
+  power_type    String?
+  oil_type      CarOilTypes[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("public_transport_types")
+}
+
+model AirBrands {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  country     String?
+  description String?
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  AirModels AirModels[]
+
+  @@map("air_brands")
+}
+
+model AirModels {
+  id          Int     @id @default(autoincrement())
+  brandId     Int
+  name        String
+  description String?
+
+  oil_type            AirOilTypes?
+  oil_carbon_per_unit Float?       @default(0.0)
+
+  brand AirBrands @relation(fields: [brandId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("air_models")
+}
+
+enum AirOilTypes {
+  JET
+  SAF
+  AVGAS_100
+}
+
+// Diesel 91', 'Diesel 95', 'Diesel 97', 'ALPHA-X', 'E20', 'E85', 'B5PLUS
+enum CarOilTypes {
+  DIESEL_91
+  DIESEL_95
+  DIESEL_97
+  ALPHA_X
+  E20
+  E85
+  B5PLUS
+}
+
+// Bensin 91', 'Bensin 95', 'Gasohol 95', 'Gasohol 91', 'Gasohol 97', 'Gasohol E20', 'Gasohol E85
+enum MotorBikeOilTypes {
+  GASOHOL_95
+  GASOHOL_91
+  GASOHOL_97
+  GASOHOL_E20
+  GASOHOL_E85
+}
