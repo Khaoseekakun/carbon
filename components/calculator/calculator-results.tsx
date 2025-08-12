@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Download, Share2, RotateCcw, ThumbsUp, AlertTriangle, Leaf } from 'lucide-react';
+import { Download, ThumbsUp, AlertTriangle, Leaf } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { CalculatorFormValues } from '@/lib/schemas/calculator-schema';
 import { calculateCarbonFootprint } from '@/lib/carbon-calculations';
@@ -25,32 +25,39 @@ interface CalculatorResultsProps {
 export default function CalculatorResults({ data, onReset }: CalculatorResultsProps) {
   const [activeTab, setActiveTab] = useState('summary');
   const { toast } = useToast();
+  const [HomeEmissions, setHomeEmissions] = useState(0)
+  const [CarEmissions, setCarEmissions] = useState(0)
+  const [MotorcycleEmissions, setMotorcycleEmission] = useState(0)
+  const [TransportEmissions, setTransportEmission] = useState(0)
+  const [TravelEmissions, setTravelEmissions] = useState(0)
+  const [TotalEmissions, setTotalEmissions] = useState(0)
+  const [loadingPage, setLoading] = useState(true)
 
   // คำนวณการปล่อยคาร์บอนจากข้อมูลฟอร์ม
-  const results = calculateCarbonFootprint(data);
-
   // เตรียมข้อมูลสำหรับกราฟ
   const categoryData = [
-    { name: 'ที่อยู่อาศัย', value: results.homeEmissions },
-    { name: 'การเดินทาง', value: results.transportEmissions },
-    { name: 'อาหาร', value: results.foodEmissions },
-    { name: 'ไลฟ์สไตล์', value: results.lifestyleEmissions },
-    { name: 'ท่องเที่ยว', value: results.travelEmissions },
+    { name: 'ที่อยู่อาศัย', value: HomeEmissions ?? 0 },
+    { name: 'การใช้รถยนต์', value: CarEmissions ?? 0 },
+    { name: 'การใช้รถจักรยานยนต์', value: MotorcycleEmissions ?? 0 },
+    { name: 'การใช้รถสาธารณะ', value: TransportEmissions ?? 0 },
+    { name: 'ท่องเที่ยว', value: TravelEmissions ?? 0 },
   ];
 
   // ข้อมูลเปรียบเทียบ
   const comparisonData = [
-    { name: 'ของคุณ', value: results.totalEmissions },
-    { name: 'ค่าเฉลี่ยประเทศ', value: 8500 / 365 },
-    { name: 'ค่าเฉลี่ยโลก', value: 4800 / 365 },
-    { name: 'ระดับยั่งยืน', value: 2000 / 365 },
+    { name: 'ของคุณ', value: TotalEmissions },             // ปล่อยคาร์บอนของผู้ใช้ (kg CO2e ต่อวัน)
+    { name: 'ค่าเฉลี่ยรายคน (ไทย)', value: 4100 / 365 },   // ประมาณ 11.23 kg/day (4.1 ตัน/ปี)
+    { name: 'ค่าเฉลี่ยจังหวัด กรุงเทพฯ', value: 5500 / 365 }, // ~15.07 kg/day (5.5 ตัน/ปี)
+    { name: 'ค่าเฉลี่ยจังหวัด อุบลราชธานี', value: 3500 / 365 }, // ~9.59 kg/day (3.5 ตัน/ปี)
+    { name: 'ค่าเฉลี่ยโลก', value: 12.9 },
+    { name: 'ระดับยั่งยืน', value: 5.5 },
   ];
 
   // สีสำหรับกราฟ
   const COLORS = ['#059669', '#0284c7', '#d97706', '#dc2626', '#7c3aed'];
 
 
-  const { session, logout, loading } = useSession();
+  const { session } = useSession();
 
 
   const handleSaveDataToOrganization = async () => {
@@ -62,12 +69,12 @@ export default function CalculatorResults({ data, onReset }: CalculatorResultsPr
 
       const response = await axios.post(`/api/customers/${session?.id}/history`, {
         userId: session?.id,
-        result: Number(results.totalEmissions.toFixed(2)),
-        homeEmissions: Number(results.homeEmissions.toFixed(2)),
-        transportEmissions: Number(results.transportEmissions.toFixed(2)),
-        foodEmissions: Number(results.foodEmissions.toFixed(2)),
-        lifestyleEmissions: Number(results.lifestyleEmissions.toFixed(2)),
-        travelEmissions: Number(results.travelEmissions.toFixed(2)),
+        result: Number(TotalEmissions.toFixed(2)),
+        homeEmissions: Number(HomeEmissions.toFixed(2)),
+        transportEmission: Number(TransportEmissions.toFixed(2)),
+        motorcycleEmission: Number(MotorcycleEmissions.toFixed(2)),
+        carEmissions: Number(CarEmissions.toFixed(2)),
+        travelEmissions: Number(TravelEmissions.toFixed(2)),
       }, {
         headers: {
           "Content-Type": "application/json",
@@ -93,15 +100,15 @@ export default function CalculatorResults({ data, onReset }: CalculatorResultsPr
 
     } catch (error: any) {
       console.error("Error saving calculation history:", error);
-      
+
       // Handle different types of errors
       let errorMessage = "ไม่สามารถบันทึกข้อมูลได้";
-      
+
       if (error.response) {
         // API responded with error status
         const statusCode = error.response.status;
         const errorData = error.response.data;
-        
+
         switch (statusCode) {
           case 401:
             errorMessage = "ไม่มีสิทธิ์เข้าถึง กรุณาเข้าสู่ระบบใหม่";
@@ -122,7 +129,7 @@ export default function CalculatorResults({ data, onReset }: CalculatorResultsPr
         // Network error
         errorMessage = "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
       }
-      
+
       toast({
         title: "เกิดข้อผิดพลาด",
         description: errorMessage,
@@ -137,7 +144,52 @@ export default function CalculatorResults({ data, onReset }: CalculatorResultsPr
     return { label: 'ผลกระทบสูง', color: 'text-red-600 dark:text-red-400', icon: <AlertTriangle className="h-5 w-5 mr-1" /> };
   };
 
-  const footprintCategory = getFootprintCategory(results.totalEmissions);
+  const footprintCategory = getFootprintCategory(TotalEmissions);
+
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true)
+        const results = await calculateCarbonFootprint(data);
+        setHomeEmissions(results.homeEmissions)
+        setCarEmissions(results.carEmissions)
+        setMotorcycleEmission(results.motorcycleEmission)
+        setTransportEmission(results.transportEmission)
+        setTravelEmissions(results.travelEmissions)
+        setTotalEmissions(results.totalEmissions)
+      } catch (error) {
+        setLoading(false)
+        console.log(error)
+      }
+      finally {
+        setLoading(false)
+      }
+    })()
+  }, [])
+
+  if (loadingPage == true) return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="flex flex-col items-center">
+        <svg className="animate-spin h-10 w-10 text-green-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <span className="text-lg text-green-700 font-medium">กำลังประมวลผลข้อมูล...</span>
+      </div>
+    </div>
+  )
+
+  const sustainableLevel = 5.5; // เป้าหมายยั่งยืน (kg CO2e/day)
+  const maxLevel = 23.29;       // ค่าเฉลี่ยประเทศสูงสุด (kg CO2e/day)
+
+  // คำนวณ % สำหรับ Progress bar (เทียบกับ sustainableLevel)
+  const progressValue = Math.min(100, (TotalEmissions / sustainableLevel) * 100);
+
+  // คำนวณ % ว่าสูงกว่าที่กำหนดกี่ %
+  const overPercent = TotalEmissions > sustainableLevel
+    ? ((TotalEmissions - sustainableLevel) / sustainableLevel) * 100
+    : 0;
 
   return (
     <Card className="border-green-100 dark:border-green-900/30 shadow-md">
@@ -154,8 +206,8 @@ export default function CalculatorResults({ data, onReset }: CalculatorResultsPr
 
         <div className="mb-8">
           <div className="text-center mb-6">
-            <div className="text-4xl font-bold mb-1">{results.totalEmissions.toFixed(2)}</div>
-            <div className="text-lg">กิโลกรัม CO₂e วัน</div>
+            <div className="text-4xl font-bold mb-1">{TotalEmissions.toFixed(2)}</div>
+            <div className="text-lg">กิโลกรัม CO₂e ต่อวัน</div>
             <div className="mt-2">
               <Badge className={`${footprintCategory.color.includes('green') ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : footprintCategory.color.includes('amber') ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'} flex items-center py-1.5 px-3 text-sm font-medium`}>
                 <span className="flex items-center">
@@ -168,23 +220,29 @@ export default function CalculatorResults({ data, onReset }: CalculatorResultsPr
 
           <div className="mb-2 flex justify-between text-sm">
             <span>ระดับที่ยั่งยืน</span>
-            {((5.48 - 5.48) / 5.48) * 100 > 0 && (
-              <span>สูงกว่าที่กำหนด {(((5.48 - 5.48) / 5.48) * 100).toFixed(0)}% </span>
+            {overPercent > 0 && (
+              <span>สูงกว่าที่กำหนด {overPercent.toFixed(0)}%</span>
             )}
           </div>
-          <Progress value={Math.max(0, Math.min(100, ((5.48 / 5.48) * 100)))} className="h-2 bg-gray-100 dark:bg-gray-800" />
+
+          <Progress
+            value={progressValue}
+            className="h-2 bg-gray-100 dark:bg-gray-800"
+            max={100}
+          />
+
           <div className="mt-1 flex justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>0 กิโลกรัม</span>
-            <span>5.48 กิโลกรัม (ยั่งยืน)</span>
-            <span>23.29+ กิโลกรัม</span>
+            <span>{sustainableLevel.toFixed(2)} กิโลกรัม (ยั่งยืน)</span>
+            <span>{maxLevel}+ กิโลกรัม</span>
           </div>
         </div>
 
         <Tabs defaultValue="summary" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 mb-6">
             <TabsTrigger value="summary">สรุป</TabsTrigger>
-            <TabsTrigger value="breakdown">รายละเอียด</TabsTrigger>
-            <TabsTrigger value="actions">ลดผลกระทบ</TabsTrigger>
+            {/* <TabsTrigger value="breakdown">รายละเอียด</TabsTrigger>
+            <TabsTrigger value="actions">ลดผลกระทบ</TabsTrigger> */}
           </TabsList>
 
           <TabsContent value="summary" className="space-y-6">
@@ -239,14 +297,14 @@ export default function CalculatorResults({ data, onReset }: CalculatorResultsPr
             <div className="mt-6 space-y-4">
               <h3 className="text-lg font-medium">ผลกระทบของคุณ</h3>
               <p>
-                การปล่อยคาร์บอนประจำปีของคุณที่ <span className='text-red-500'>{results.totalEmissions.toFixed(2)} กิโลกรัม CO₂e</span> นั้น {results.totalEmissions > 13.15 ? 'สูงกว่า' : 'ต่ำกว่า'} ค่าเฉลี่ยโลกที่ 13.15 กิโลกรัม
+                การปล่อยคาร์บอนประจำปีของคุณที่ <span className='text-red-500'>{TotalEmissions.toFixed(2)} กิโลกรัม CO₂e</span> นั้น {TotalEmissions > 13.15 ? 'สูงกว่า' : 'ต่ำกว่า'} ค่าเฉลี่ยโลกที่ 13.15 กิโลกรัม
                 หมวดหมู่ที่มีผลกระทบมากที่สุดคือ <span className='text-red-500'>{categoryData.sort((a, b) => b.value - a.value)[0].name}</span>
               </p>
 
               <p>
-                {results.totalEmissions < 13.15
+                {TotalEmissions < 13.15
                   ? "คุณทำได้ดีมาก! การปล่อยคาร์บอนของคุณต่ำกว่าค่าเฉลี่ยอย่างมาก แสดงถึงความมุ่งมั่นในความยั่งยืน"
-                  : results.totalEmissions < (13.15 * 4)
+                  : TotalEmissions < (13.15 * 4)
                     ? "คุณมีการปล่อยคาร์บอนในระดับปานกลาง ด้วยการเปลี่ยนแปลงบางอย่าง คุณสามารถลดผลกระทบต่อสิ่งแวดล้อมได้อย่างมาก"
                     : "การปล่อยคาร์บอนของคุณสูงกว่าค่าเฉลี่ย ข่าวดีคือมีหลายวิธีที่คุณสามารถลดผลกระทบได้"}
               </p>

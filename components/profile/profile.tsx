@@ -31,7 +31,6 @@ export default function ProfilePage() {
 
   const { session, logout, loading } = useSession();
   const [org, setOrg] = useState<OrganizationNew | null>(null)
-  const [load, setLoad] = useState(true)
 
   // mothname, and value
   const [monthlyData, setMonthlyData] = useState<{ month: string, emissions: number }[]>([])
@@ -55,7 +54,7 @@ export default function ProfilePage() {
               setOrg(null)
             }
           } catch (error) {
-
+            console.log(error)
           }
         })()
       }

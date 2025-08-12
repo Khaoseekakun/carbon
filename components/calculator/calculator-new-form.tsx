@@ -18,21 +18,20 @@ import {
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
 import { Home, Car, Utensils, ShoppingBag, Plane } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { calculatorFormSchema } from '@/lib/schemas/calculator-schema';
 import CalculatorResults from '@/components/calculator/calculator-results';
 import axios from 'axios';
-import { CarBrands, CarModels, MotorcycleBrands, MotorcycleModels, PublicTransportTypes } from '@/lib/generated/prisma';
+import { AirBrands, AirModels, CarBrands, CarModels, MotorcycleBrands, MotorcycleModels, PublicTransportTypes } from '@/lib/generated/prisma';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const formTabs = [
     { id: 'home', label: 'บ้าน', icon: <Home className="mr-2 h-4 w-4" /> },
     { id: 'car', label: 'การใช้รถยนต์', icon: <Car className="mr-2 h-4 w-4" /> },
     { id: 'motorbike', label: 'การใช้รถมอเตอร์ไซค์', icon: <Utensils className="mr-2 h-4 w-4" /> },
-    { id: 'piblic_transport', label: 'การใช้รถสาธารณะ', icon: <ShoppingBag className="mr-2 h-4 w-4" /> },
+    { id: 'public', label: 'การใช้รถสาธารณะ', icon: <ShoppingBag className="mr-2 h-4 w-4" /> },
     { id: 'travel', label: 'ท่องเที่ยว', icon: <Plane className="mr-2 h-4 w-4" /> },
 ];
 
@@ -42,8 +41,10 @@ export default function CalculatorNewForm() {
     const [progressPercentage, setProgressPercentage] = useState(20);
     const [carBrandList, setCarBrandList] = useState<CarBrands[]>([])
     const [carModelList, setCarModelList] = useState<CarModels[]>([])
-    const [motorcyleBrandList, setmotorcyleBrandList] = useState<MotorcycleBrands[]>([])
-    const [motorcyleModelList, setmotorcyleModelList] = useState<MotorcycleModels[]>([])
+    const [motorcycleBrandList, setmotorcycleBrandList] = useState<MotorcycleBrands[]>([])
+    const [motorcycleModelList, setmotorcycleModelList] = useState<MotorcycleModels[]>([])
+    const [airBrandList, setAirBrandList] = useState<AirBrands[]>([])
+    const [airModelList, setAirModelList] = useState<AirModels[]>([])
     const [publicTransportList, setPublicTransportList] = useState<PublicTransportTypes[]>([])
 
     // Initialize form with react-hook-form and zod validation
@@ -85,7 +86,7 @@ export default function CalculatorNewForm() {
 
     // Handle form submission
     function onSubmit(values: z.infer<typeof calculatorFormSchema>) {
-        console.log(values);
+        console.log("show value")
         setShowResults(true);
     }
 
@@ -127,9 +128,9 @@ export default function CalculatorNewForm() {
 
     const loadMotorcycleBrand = async () => {
         try {
-            const fetch_motorcyle = await axios.get('/api/motorcyle/brand')
-            if (fetch_motorcyle.status == 200) {
-                setmotorcyleBrandList(fetch_motorcyle.data.data)
+            const fetch_motorcycle = await axios.get('/api/motorcycle/brand')
+            if (fetch_motorcycle.status == 200) {
+                setmotorcycleBrandList(fetch_motorcycle.data.data)
             } else {
 
             }
@@ -140,9 +141,9 @@ export default function CalculatorNewForm() {
 
     const loadMotorcycledModels = async (brand_id: string) => {
         try {
-            const fetch_motorcyle = await axios.get(`/api/motorcyle/brand/${brand_id}`)
-            if (fetch_motorcyle.status == 200) {
-                setmotorcyleModelList(fetch_motorcyle.data.data)
+            const fetch_motorcycle = await axios.get(`/api/motorcycle/brand/${brand_id}`)
+            if (fetch_motorcycle.status == 200) {
+                setmotorcycleModelList(fetch_motorcycle.data.data)
             } else {
 
             }
@@ -155,7 +156,7 @@ export default function CalculatorNewForm() {
         try {
             const fetch_air = await axios.get('/api/air/brand')
             if (fetch_air.status == 200) {
-                setmotorcyleBrandList(fetch_air.data.data)
+                setAirBrandList(fetch_air.data.data)
             } else {
 
             }
@@ -164,11 +165,11 @@ export default function CalculatorNewForm() {
         }
     }
 
-    const loadAirdModels = async (brand_id: string) => {
+    const loadAirModels = async (brand_id: string) => {
         try {
             const fetch_air = await axios.get(`/api/air/brand/${brand_id}`)
             if (fetch_air.status == 200) {
-                setmotorcyleModelList(fetch_air.data.data)
+                setAirModelList(fetch_air.data.data)
             } else {
 
             }
@@ -191,24 +192,6 @@ export default function CalculatorNewForm() {
         }
     }
 
-    // Define required fields for each tab
-    const getRequiredFieldsForTab = (tabId: string): string[] => {
-        switch (tabId) {
-            case 'home':
-                return ['home_power_type', 'home_electricity_units_used', 'home_wood_burning_frequency', 'home_garbage_is_thrown_away'];
-            case 'car':
-                return ['use_car_to_day', 'car_brand', 'car_model', 'car_used_km'];
-            case 'motorbike':
-                return ['use_motorcycle_to_day', 'motorcycle_brand', 'motorcycle_model', 'motorcycle_used_km'];
-            case 'piblic_transport':
-                return ['use_public_transport', 'public_transport_type', 'public_transport_used_km'];
-            case 'travel':
-                return ['use_traverl_air', 'travel_air_brand', 'travel_air_model', 'travel_distance'];
-            default:
-                return [];
-        }
-    };
-
     // Handle "Next" button click with validation
     const handleNext = async () => {
         const currentIndex = formTabs.findIndex(tab => tab.id === activeTab);
@@ -216,6 +199,7 @@ export default function CalculatorNewForm() {
             const nextTab = formTabs[currentIndex + 1].id;
             handleTabChange(nextTab);
         } else {
+            console.log("Submit")
             form.handleSubmit(onSubmit)();
         }
     };
@@ -235,6 +219,7 @@ export default function CalculatorNewForm() {
     };
 
     if (showResults) {
+        console.log("is show")
         return <CalculatorResults data={form.getValues()} onReset={() => setShowResults(false)} />;
     }
 
@@ -482,7 +467,7 @@ export default function CalculatorNewForm() {
                                             name="car_used_km"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>ระยะทางที่คุณเดินทาง</FormLabel>
+                                                    <FormLabel>ระยะทางที่คุณเดินทาง (กิโลเมตร)</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             type="number"
@@ -557,7 +542,7 @@ export default function CalculatorNewForm() {
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {
-                                                                    motorcyleBrandList.map((car) => (
+                                                                    motorcycleBrandList.map((car) => (
                                                                         <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
                                                                     ))
                                                                 }
@@ -586,7 +571,7 @@ export default function CalculatorNewForm() {
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {
-                                                                        motorcyleModelList.map((car) => (
+                                                                        motorcycleModelList.map((car) => (
                                                                             <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
                                                                         ))
                                                                     }
@@ -603,7 +588,7 @@ export default function CalculatorNewForm() {
                                             name="motorcycle_used_km"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>ระยะทางที่คุณเดินทาง</FormLabel>
+                                                    <FormLabel>ระยะทางที่คุณเดินทาง (กิโลเมตร)</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             type="number"
@@ -629,15 +614,15 @@ export default function CalculatorNewForm() {
                             <TabsContent value="travel" className="space-y-6">
                                 <FormField
                                     control={form.control}
-                                    name="use_car_to_day"
+                                    name="use_traverl_air"
                                     render={({ field }) => (
                                         <FormItem className="space-y-3">
-                                            <FormLabel>วันนี้คุณได้เดินทางด้วยรถยนต์หรือไม่?</FormLabel>
+                                            <FormLabel>วันนี้คุณได้เดินทางด้วยเครื่องบินหรือไม่?</FormLabel>
                                             <FormControl>
                                                 <RadioGroup
                                                     onValueChange={(value) => {
                                                         field.onChange(value);
-                                                        clearFieldError('use_car_to_day');
+                                                        clearFieldError('use_traverl_air');
                                                     }}
                                                     className="flex flex-col space-y-1"
                                                 >
@@ -660,23 +645,23 @@ export default function CalculatorNewForm() {
                                     )}
                                 />
 
-                                {form.watch('use_car_to_day') === "yes" && (
+                                {form.watch('use_traverl_air') === "yes" && (
                                     <>
                                         <FormField
                                             control={form.control}
-                                            name="car_brand"
+                                            name="travel_air_brand"
                                             render={({ field }) => (
                                                 <Select value={field.value} onValueChange={(v) => {
                                                     field.onChange(v)
-                                                    loadCardModels(v)
+                                                    loadAirModels(v)
                                                 }}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="เลือกแบรนด์รถยนต์" />
+                                                        <SelectValue placeholder="เลือกสายการบิน" />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {
-                                                            carBrandList.map((car) => (
-                                                                <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
+                                                            airBrandList.map((air) => (
+                                                                <SelectItem value={`${air.id}`}>{air.name}</SelectItem>
                                                             ))
                                                         }
                                                     </SelectContent>
@@ -684,21 +669,21 @@ export default function CalculatorNewForm() {
                                             )}
                                         />
 
-                                        {form.watch('car_brand') && (
+                                        {form.watch('travel_air_brand') && (
                                             <FormField
                                                 control={form.control}
-                                                name="car_model"
+                                                name="travel_air_model"
                                                 render={({ field }) => (
                                                     <Select value={field.value} onValueChange={(v) => {
                                                         field.onChange(v)
                                                     }}>
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder="เลือกรุ่นรถยนต์" />
+                                                            <SelectValue placeholder="เลือกรุ่นของเครื่องบิน" />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {
-                                                                carModelList.map((car) => (
-                                                                    <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
+                                                                airModelList.map((air) => (
+                                                                    <SelectItem value={`${air.id}`}>{air.name}</SelectItem>
                                                                 ))
                                                             }
                                                         </SelectContent>
@@ -709,10 +694,10 @@ export default function CalculatorNewForm() {
 
                                         <FormField
                                             control={form.control}
-                                            name="car_used_km"
+                                            name="travel_distance"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>ระยะทางที่คุณเดินทาง</FormLabel>
+                                                    <FormLabel>ระยะทางที่คุณเดินทาง (กิโลเมตร)</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             type="number"
@@ -720,9 +705,9 @@ export default function CalculatorNewForm() {
                                                             {...field}
                                                             onChange={(e) => {
                                                                 field.onChange(Number(e.target.value));
-                                                                clearFieldError('car_used_km');
+                                                                clearFieldError('travel_distance');
                                                             }}
-                                                            onFocus={() => clearFieldError('car_used_km')}
+                                                            onFocus={() => clearFieldError('travel_distance')}
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -734,9 +719,8 @@ export default function CalculatorNewForm() {
 
 
                             </TabsContent>
-
                             
-                            <TabsContent value="piblic_transport" className="space-y-6">
+                            <TabsContent value="public" className="space-y-6">
                                 <FormField
                                     control={form.control}
                                     name="use_public_transport"
@@ -770,59 +754,14 @@ export default function CalculatorNewForm() {
                                     )}
                                 />
 
-                                {form.watch('use_car_to_day') === "yes" && (
+                                {form.watch('use_public_transport') === "yes" && (
                                     <>
                                         <FormField
                                             control={form.control}
-                                            name="car_brand"
-                                            render={({ field }) => (
-                                                <Select value={field.value} onValueChange={(v) => {
-                                                    field.onChange(v)
-                                                    loadCardModels(v)
-                                                }}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="เลือกแบรนด์รถยนต์" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {
-                                                            carBrandList.map((car) => (
-                                                                <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
-                                                            ))
-                                                        }
-                                                    </SelectContent>
-                                                </Select>
-                                            )}
-                                        />
-
-                                        {form.watch('car_brand') && (
-                                            <FormField
-                                                control={form.control}
-                                                name="car_model"
-                                                render={({ field }) => (
-                                                    <Select value={field.value} onValueChange={(v) => {
-                                                        field.onChange(v)
-                                                    }}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="เลือกรุ่นรถยนต์" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {
-                                                                carModelList.map((car) => (
-                                                                    <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
-                                                                ))
-                                                            }
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                        )}
-
-                                        <FormField
-                                            control={form.control}
-                                            name="car_used_km"
+                                            name="public_transport_used_km"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>ระยะทางที่คุณเดินทาง</FormLabel>
+                                                    <FormLabel>ระยะทางที่คุณเดินทาง (กิโลเมตร)</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             type="number"

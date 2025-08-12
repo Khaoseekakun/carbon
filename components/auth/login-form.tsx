@@ -34,7 +34,7 @@ export default function LoginForm() {
   const [selected, setSelected] = useState('person');
   const { toast } = useToast();
 
-  const { session, logout } = useSession();
+  const { session } = useSession();
   const [loading, setLoading] = useState(true)
   const [loginSuccess, setLoginSuccess] = useState(false);
   useEffect(() => {

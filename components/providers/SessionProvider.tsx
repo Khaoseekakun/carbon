@@ -44,7 +44,7 @@ export default function SessionProvider({ children }: { children: React.ReactNod
         const currentTime = Math.floor(Date.now() / 1000);
         if (payload.exp < currentTime) {
           console.log("Token expired, logging out");
-          handleLogout();
+          // handleLogout();
         } else {
           const userData = JSON.parse(localStorage.getItem("user") || "{}");
           setSession({
@@ -54,7 +54,7 @@ export default function SessionProvider({ children }: { children: React.ReactNod
         }
       } catch (error) {
         console.error("Invalid token", error);
-        handleLogout();
+        // handleLogout();
       }
     }
     setLoading(false);
