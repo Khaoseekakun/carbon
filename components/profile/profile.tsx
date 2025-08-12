@@ -40,22 +40,25 @@ export default function ProfilePage() {
     if (!session && loading == false) {
       window.location.href = "/"
     } else {
-      (async () => {
-        try {
-          const org_data = await axios.get(`/api/organization/${session?.org_id!}`, {
-            headers: {
-              'Content-Type': "application/json"
+      if (loading == false) {
+        (async () => {
+          try {
+            const org_data = await axios.get(`/api/organization/${session?.org_id}`, {
+              headers: {
+                'Content-Type': "application/json"
+              }
+            })
+            console.log(org_data)
+            if (org_data.data.status) {
+              setOrg(org_data.data.organization)
+            } else {
+              setOrg(null)
             }
-          })
-          if (org_data.data.status) {
-            setOrg(org_data.data.organization)
-          } else {
-            setOrg(null)
-          }
-        } catch (error) {
+          } catch (error) {
 
-        }
-      })()
+          }
+        })()
+      }
     }
   }, [session, loading])
 
@@ -131,7 +134,7 @@ export default function ProfilePage() {
       <div className="container mx-auto px-4">
         <Tabs defaultValue="personal" className="space-y-8">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="personal">ส่วนบุคคล</TabsTrigger>
+            <TabsTrigger value="personal">ส่วนตัว</TabsTrigger>
             <TabsTrigger value="organization">องค์กร</TabsTrigger>
           </TabsList>
 

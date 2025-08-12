@@ -442,7 +442,7 @@ export default function RegisterForm() {
                                                 <CardContent className="p-4 flex items-center space-x-4">
                                                     <div className="flex-1">
                                                         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                                                            บุคคล
+                                                            สมาชิก
                                                         </h3>
                                                     </div>
                                                 </CardContent>

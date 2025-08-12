@@ -156,7 +156,7 @@ export default function LoginForm() {
             <SelectValue placeholder="เลือกประเภทการเข้าสู่ระบบ" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="person">บุคคล</SelectItem>
+            <SelectItem value="person">สมาชิก</SelectItem>
             <SelectItem value="org">องค์กร</SelectItem>
           </SelectContent>
         </Select>

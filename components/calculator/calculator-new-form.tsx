@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -24,6 +24,9 @@ import { Home, Car, Utensils, ShoppingBag, Plane } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { calculatorFormSchema } from '@/lib/schemas/calculator-schema';
 import CalculatorResults from '@/components/calculator/calculator-results';
+import axios from 'axios';
+import { CarBrands, CarModels, MotorcycleBrands, MotorcycleModels, PublicTransportTypes } from '@/lib/generated/prisma';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const formTabs = [
     { id: 'home', label: 'บ้าน', icon: <Home className="mr-2 h-4 w-4" /> },
@@ -37,48 +40,48 @@ export default function CalculatorNewForm() {
     const [activeTab, setActiveTab] = useState('home');
     const [showResults, setShowResults] = useState(false);
     const [progressPercentage, setProgressPercentage] = useState(20);
+    const [carBrandList, setCarBrandList] = useState<CarBrands[]>([])
+    const [carModelList, setCarModelList] = useState<CarModels[]>([])
+    const [motorcyleBrandList, setmotorcyleBrandList] = useState<MotorcycleBrands[]>([])
+    const [motorcyleModelList, setmotorcyleModelList] = useState<MotorcycleModels[]>([])
+    const [publicTransportList, setPublicTransportList] = useState<PublicTransportTypes[]>([])
 
     // Initialize form with react-hook-form and zod validation
     const form = useForm<z.infer<typeof calculatorFormSchema>>({
         resolver: zodResolver(calculatorFormSchema),
         defaultValues: {
-            // Home
             home_power_type: undefined,
             home_electricity_units_used: undefined,
             home_wood_burning_frequency: undefined,
             home_garbage_is_thrown_away: undefined,
 
-            // Transportation
-            use_car_to_day: 0,
-            car_brand: undefined,
-            car_model: undefined,
-            car_used_km: undefined,
-            car_power_type: undefined,
-            car_oil_type: undefined,
+            use_car_to_day: "no",
+            car_brand: '',
+            car_model: '',
+            car_used_km: 0,
 
-            // Moterbile
-            use_motorcycle_to_day: 0,
-            motorcycle_brand: undefined,
-            motorcycle_model: undefined,
-            motorcycle_used_km: undefined,
-            motorcycle_power_type: undefined,
-            motorcycle_oil_type: undefined,
+            use_motorcycle_to_day: 'no',
+            motorcycle_brand: '',
+            motorcycle_model: '',
+            motorcycle_used_km: 0,
 
-            // Piblic Transport
-            use_public_transport: 0,
-            public_transport_type: undefined,
-            public_transport_used_km: undefined,
-            public_transport_frequency: undefined,
-            public_transport_power_type: undefined,
-            public_transport_oil_type: undefined,
+            use_public_transport: 'no',
+            public_transport_used_km: 0,
 
-            // Travel
-            use_traverl_air: 0,
-            travel_air_brand: undefined,
-            travel_air_model: undefined,
-            travel_distance: undefined,
-        },
+            use_traverl_air: 'no',
+            travel_air_brand: '',
+            travel_air_model: '',
+            travel_distance: 0,
+        }
+
     });
+
+    useEffect(() => {
+        loadCarBrand()
+        loadAirBrand()
+        loadPublicTransport()
+        loadMotorcycleBrand()
+    }, [])
 
     // Handle form submission
     function onSubmit(values: z.infer<typeof calculatorFormSchema>) {
@@ -96,19 +99,111 @@ export default function CalculatorNewForm() {
         setProgressPercentage(newProgress);
     };
 
+    const loadCarBrand = async () => {
+        try {
+            const fetch_car = await axios.get('/api/car/brand')
+            if (fetch_car.status == 200) {
+                setCarBrandList(fetch_car.data.data)
+            } else {
+
+            }
+        } catch (error) {
+
+        }
+    }
+
+    const loadCardModels = async (brand_id: string) => {
+        try {
+            const fetch_car = await axios.get(`/api/car/brand/${brand_id}`)
+            if (fetch_car.status == 200) {
+                setCarModelList(fetch_car.data.data)
+            } else {
+
+            }
+        } catch (error) {
+
+        }
+    }
+
+    const loadMotorcycleBrand = async () => {
+        try {
+            const fetch_motorcyle = await axios.get('/api/motorcyle/brand')
+            if (fetch_motorcyle.status == 200) {
+                setmotorcyleBrandList(fetch_motorcyle.data.data)
+            } else {
+
+            }
+        } catch (error) {
+
+        }
+    }
+
+    const loadMotorcycledModels = async (brand_id: string) => {
+        try {
+            const fetch_motorcyle = await axios.get(`/api/motorcyle/brand/${brand_id}`)
+            if (fetch_motorcyle.status == 200) {
+                setmotorcyleModelList(fetch_motorcyle.data.data)
+            } else {
+
+            }
+        } catch (error) {
+
+        }
+    }
+
+    const loadAirBrand = async () => {
+        try {
+            const fetch_air = await axios.get('/api/air/brand')
+            if (fetch_air.status == 200) {
+                setmotorcyleBrandList(fetch_air.data.data)
+            } else {
+
+            }
+        } catch (error) {
+
+        }
+    }
+
+    const loadAirdModels = async (brand_id: string) => {
+        try {
+            const fetch_air = await axios.get(`/api/air/brand/${brand_id}`)
+            if (fetch_air.status == 200) {
+                setmotorcyleModelList(fetch_air.data.data)
+            } else {
+
+            }
+        } catch (error) {
+
+        }
+    }
+
+
+    const loadPublicTransport = async () => {
+        try {
+            const fetch_car = await axios.get('/api/public-transport')
+            if (fetch_car.status == 200) {
+                setPublicTransportList(fetch_car.data.data)
+            } else {
+
+            }
+        } catch (error) {
+
+        }
+    }
+
     // Define required fields for each tab
     const getRequiredFieldsForTab = (tabId: string): string[] => {
         switch (tabId) {
             case 'home':
                 return ['home_power_type', 'home_electricity_units_used', 'home_wood_burning_frequency', 'home_garbage_is_thrown_away'];
             case 'car':
-                return ['use_car_to_day', 'car_brand', 'car_model', 'car_used_km', 'car_power_type', 'car_oil_type'];
+                return ['use_car_to_day', 'car_brand', 'car_model', 'car_used_km'];
             case 'motorbike':
-                return ['use_motorcycle_to_day', 'motorcycle_brand', 'motorcycle_model', 'motorcycle_used_km', 'motorcycle_power_type', 'motorcycle_oil_type'];
+                return ['use_motorcycle_to_day', 'motorcycle_brand', 'motorcycle_model', 'motorcycle_used_km'];
             case 'piblic_transport':
-                return ['use_public_transport', 'public_transport_type', 'public_transport_used_km', 'public_transport_frequency', 'public_transport_power_type', 'public_transport_oil_type'];
+                return ['use_public_transport', 'public_transport_type', 'public_transport_used_km'];
             case 'travel':
-                return ['travel_frequency', 'travel_type', 'travel_distance', 'travel_power_type', 'travel_oil_type'];
+                return ['use_traverl_air', 'travel_air_brand', 'travel_air_model', 'travel_distance'];
             default:
                 return [];
         }
@@ -117,34 +212,6 @@ export default function CalculatorNewForm() {
     // Handle "Next" button click with validation
     const handleNext = async () => {
         const currentIndex = formTabs.findIndex(tab => tab.id === activeTab);
-        const requiredFields = getRequiredFieldsForTab(activeTab) as (keyof z.infer<typeof calculatorFormSchema>)[];
-
-        // Validate current tab's required fields
-        const isValid = await form.trigger(requiredFields);
-
-        if (!isValid) {
-            // If validation fails, don't proceed to next tab
-            return;
-        }
-
-        // Additional validation for conditional fields
-        if (activeTab === 'home') {
-            const homeEnergySource = form.getValues('');
-            if (homeEnergySource === 'mixed') {
-                const renewableValid = await form.trigger(['renewablePercentage']);
-                if (!renewableValid) return;
-            }
-        }
-
-        if (activeTab === 'transportation') {
-            const transportationCar = form.getValues('transportationCar');
-            if (transportationCar === 'yes') {
-                const carFieldsValid = await form.trigger(['carType', 'carMileage']);
-                if (!carFieldsValid) return;
-            }
-        }
-
-        // If all validations pass, proceed to next tab or submit
         if (currentIndex < formTabs.length - 1) {
             const nextTab = formTabs[currentIndex + 1].id;
             handleTabChange(nextTab);
@@ -206,23 +273,39 @@ export default function CalculatorNewForm() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <FormField
                                         control={form.control}
-                                        name="homePeople"
+                                        name="home_power_type"
                                         render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>จำนวนสมาชิก</FormLabel>
+                                            <FormItem className="space-y-3">
+                                                <FormLabel>หลังงานหลักที่ใช้ในบ้านของคุณ?</FormLabel>
                                                 <FormControl>
-                                                    <Input
-                                                        type="number"
-                                                        min={1}
-                                                        {...field}
-                                                        onChange={(e) => {
-                                                            field.onChange(Number(e.target.value));
-                                                            clearFieldError('homePeople');
+                                                    <RadioGroup
+                                                        onValueChange={(value) => {
+                                                            field.onChange(value);
+                                                            clearFieldError('home_power_type');
                                                         }}
-                                                        onFocus={() => clearFieldError('homePeople')}
-                                                    />
+                                                        defaultValue={field.value}
+                                                        className="flex flex-col space-y-1"
+                                                    >
+                                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                                            <FormControl>
+                                                                <RadioGroupItem value="grid" />
+                                                            </FormControl>
+                                                            <FormLabel className="font-normal">พลังไฟฟ้า</FormLabel>
+                                                        </FormItem>
+                                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                                            <FormControl>
+                                                                <RadioGroupItem value="renewable" />
+                                                            </FormControl>
+                                                            <FormLabel className="font-normal">พลังหมุนเวียน</FormLabel>
+                                                        </FormItem>
+                                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                                            <FormControl>
+                                                                <RadioGroupItem value="mixed" />
+                                                            </FormControl>
+                                                            <FormLabel className="font-normal">พลังานแบบผสม</FormLabel>
+                                                        </FormItem>
+                                                    </RadioGroup>
                                                 </FormControl>
-                                                <FormDescription>จำนวนคนทั้งหมดที่อยู่ในบ้านของคุณ</FormDescription>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -230,20 +313,20 @@ export default function CalculatorNewForm() {
 
                                     <FormField
                                         control={form.control}
-                                        name="homeSize"
+                                        name="home_electricity_units_used"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>ขนาดบ้าน (ตร.ม.)</FormLabel>
+                                                <FormLabel>หน่วยการใช้ไฟฟ้าของคุณวันนี้</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="number"
-                                                        min={10}
+                                                        min={0}
                                                         {...field}
                                                         onChange={(e) => {
                                                             field.onChange(Number(e.target.value));
-                                                            clearFieldError('homeSize');
+                                                            clearFieldError('home_electricity_units_used');
                                                         }}
-                                                        onFocus={() => clearFieldError('homeSize')}
+                                                        onFocus={() => clearFieldError('home_electricity_units_used')}
                                                     />
                                                 </FormControl>
                                                 <FormDescription>ขนาดบ้านของคุณโดยประมาณเป็นตารางเมตร</FormDescription>
@@ -255,38 +338,21 @@ export default function CalculatorNewForm() {
 
                                 <FormField
                                     control={form.control}
-                                    name="homeEnergySource"
+                                    name="home_garbage_is_thrown_away"
                                     render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel>แหล่งพลังงานหลัก</FormLabel>
+                                        <FormItem>
+                                            <FormLabel>ปริมาณการทิ้งขยะวันนี้</FormLabel>
                                             <FormControl>
-                                                <RadioGroup
-                                                    onValueChange={(value) => {
-                                                        field.onChange(value);
-                                                        clearFieldError('homeEnergySource');
+                                                <Input
+                                                    type="number"
+                                                    min={0}
+                                                    {...field}
+                                                    onChange={(e) => {
+                                                        field.onChange(Number(e.target.value));
+                                                        clearFieldError('home_garbage_is_thrown_away');
                                                     }}
-                                                    defaultValue={field.value}
-                                                    className="flex flex-col space-y-1"
-                                                >
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="grid" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ไฟฟ้าจากโครงข่ายมาตรฐาน</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="renewable" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">แผนพลังงานสีเขียว/พลังงานหมุนเวียน</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="mixed" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">แบบผสม (มาตรฐานร่วมกับพลังงานหมุนเวียนบางส่วน)</FormLabel>
-                                                    </FormItem>
-                                                </RadioGroup>
+                                                    onFocus={() => clearFieldError('home_garbage_is_thrown_away')}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -295,94 +361,41 @@ export default function CalculatorNewForm() {
 
                                 <FormField
                                     control={form.control}
-                                    name="homeHeatingType"
+                                    name="home_wood_burning_frequency"
                                     render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel>แหล่งพลังงานหลักสำหรับทำความร้อน</FormLabel>
+                                        <FormItem>
+                                            <FormLabel>ปริมาณการเผาไม้วันนี้</FormLabel>
                                             <FormControl>
-                                                <RadioGroup
-                                                    onValueChange={(value) => {
-                                                        field.onChange(value);
-                                                        clearFieldError('homeHeatingType');
+                                                <Input
+                                                    type="number"
+                                                    min={0}
+                                                    {...field}
+                                                    onChange={(e) => {
+                                                        field.onChange(Number(e.target.value));
+                                                        clearFieldError('home_wood_burning_frequency');
                                                     }}
-                                                    defaultValue={field.value}
-                                                    className="flex flex-col space-y-1"
-                                                >
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="gas" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ก๊าซธรรมชาติ</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="oil" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">น้ำมัน</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="electric" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ไฟฟ้า</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="heatpump" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ปั๊มความร้อน</FormLabel>
-                                                    </FormItem>
-                                                </RadioGroup>
+                                                    onFocus={() => clearFieldError('home_wood_burning_frequency')}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-
-                                {(form.watch('homeEnergySource') === 'mixed') && (
-                                    <FormField
-                                        control={form.control}
-                                        name="renewablePercentage"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>เปอร์เซ็นต์ของพลังงานหมุนเวียน: {field.value}%</FormLabel>
-                                                <FormControl>
-                                                    <Slider
-                                                        min={0}
-                                                        max={100}
-                                                        step={1}
-                                                        defaultValue={[field.value ?? 0]}
-                                                        onValueChange={(vals) => {
-                                                            field.onChange(vals[0]);
-                                                            clearFieldError('renewablePercentage');
-                                                        }}
-                                                        className="w-full"
-                                                    />
-                                                </FormControl>
-                                                <FormDescription>
-                                                    ประมาณเปอร์เซ็นต์ของพลังงานที่คุณใช้จากแหล่งพลังงานหมุนเวียน
-                                                </FormDescription>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                )}
                             </TabsContent>
 
-                            <TabsContent value="transportation" className="space-y-6">
+                            <TabsContent value="car" className="space-y-6">
                                 <FormField
                                     control={form.control}
-                                    name="transportationCar"
+                                    name="use_car_to_day"
                                     render={({ field }) => (
                                         <FormItem className="space-y-3">
-                                            <FormLabel>คุณมีหรือใช้รถยนต์เป็นประจำหรือไม่?</FormLabel>
+                                            <FormLabel>วันนี้คุณได้เดินทางด้วยรถยนต์หรือไม่?</FormLabel>
                                             <FormControl>
                                                 <RadioGroup
                                                     onValueChange={(value) => {
                                                         field.onChange(value);
-                                                        clearFieldError('transportationCar');
+                                                        clearFieldError('use_car_to_day');
                                                     }}
-                                                    defaultValue={field.value}
                                                     className="flex flex-col space-y-1"
                                                 >
                                                     <FormItem className="flex items-center space-x-3 space-y-0">
@@ -404,60 +417,72 @@ export default function CalculatorNewForm() {
                                     )}
                                 />
 
-                                {form.watch('transportationCar') === 'yes' && (
+                                {form.watch('use_car_to_day') === "yes" && (
                                     <>
                                         <FormField
                                             control={form.control}
-                                            name="carType"
+                                            name="car_brand"
                                             render={({ field }) => (
-                                                <FormItem className="space-y-3">
-                                                    <FormLabel>คุณใช้รถยนต์ประเภทใด?</FormLabel>
+
+
+                                                <FormItem>
+                                                    <FormLabel>เลือกแบรนด์รถยนต์</FormLabel>
                                                     <FormControl>
-                                                        <RadioGroup
-                                                            onValueChange={(value) => {
-                                                                field.onChange(value);
-                                                                clearFieldError('carType');
-                                                            }}
-                                                            defaultValue={field.value}
-                                                            className="flex flex-col space-y-1"
-                                                        >
-                                                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                                                <FormControl>
-                                                                    <RadioGroupItem value="petrol" />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal">เบนซิน/แก๊สโซลีน</FormLabel>
-                                                            </FormItem>
-                                                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                                                <FormControl>
-                                                                    <RadioGroupItem value="diesel" />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal">ดีเซล</FormLabel>
-                                                            </FormItem>
-                                                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                                                <FormControl>
-                                                                    <RadioGroupItem value="hybrid" />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal">ไฮบริด</FormLabel>
-                                                            </FormItem>
-                                                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                                                <FormControl>
-                                                                    <RadioGroupItem value="electric" />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal">ไฟฟ้า</FormLabel>
-                                                            </FormItem>
-                                                        </RadioGroup>
+                                                        <Select value={field.value} onValueChange={(v) => {
+                                                            field.onChange(v)
+                                                            loadCardModels(v)
+                                                        }}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="เลือกแบรนด์รถยนต์" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {
+                                                                    carBrandList.map((car) => (
+                                                                        <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
+                                                                    ))
+                                                                }
+                                                            </SelectContent>
+                                                        </Select>
                                                     </FormControl>
-                                                    <FormMessage />
                                                 </FormItem>
+
                                             )}
                                         />
 
+                                        {form.watch('car_brand') && (
+                                            <FormField
+                                                control={form.control}
+                                                name="car_model"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>รุ่นรถยนต์</FormLabel>
+                                                        <FormControl>
+                                                            <Select value={field.value} onValueChange={(v) => {
+                                                                field.onChange(v)
+                                                            }}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="เลือกรุ่นรถยนต์" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {
+                                                                        carModelList.map((car) => (
+                                                                            <SelectItem value={`${car.id}`}>{car.name} | {car.cubic_centimeter} CC.</SelectItem>
+                                                                        ))
+                                                                    }
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        )}
+
                                         <FormField
                                             control={form.control}
-                                            name="carMileage"
+                                            name="car_used_km"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>ระยะทางที่ขับรถต่อปี (กิโลเมตร)</FormLabel>
+                                                    <FormLabel>ระยะทางที่คุณเดินทาง</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             type="number"
@@ -465,14 +490,11 @@ export default function CalculatorNewForm() {
                                                             {...field}
                                                             onChange={(e) => {
                                                                 field.onChange(Number(e.target.value));
-                                                                clearFieldError('carMileage');
+                                                                clearFieldError('car_used_km');
                                                             }}
-                                                            onFocus={() => clearFieldError('carMileage')}
+                                                            onFocus={() => clearFieldError('car_used_km')}
                                                         />
                                                     </FormControl>
-                                                    <FormDescription>
-                                                        ระยะทางโดยประมาณที่คุณขับรถในแต่ละปี
-                                                    </FormDescription>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
@@ -480,144 +502,35 @@ export default function CalculatorNewForm() {
                                     </>
                                 )}
 
-                                <FormField
-                                    control={form.control}
-                                    name="publicTransportFrequency"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel>คุณใช้ระบบขนส่งสาธารณะบ่อยแค่ไหน?</FormLabel>
-                                            <FormControl>
-                                                <RadioGroup
-                                                    onValueChange={(value) => {
-                                                        field.onChange(value);
-                                                        clearFieldError('publicTransportFrequency');
-                                                    }}
-                                                    defaultValue={field.value}
-                                                    className="flex flex-col space-y-1"
-                                                >
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="never" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ไม่เคยหรือแทบไม่เคย</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="occasionally" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">บางครั้ง (1-3 วันต่อเดือน)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="regularly" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">เป็นประจำ (1-3 วันต่อสัปดาห์)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="daily" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ทุกวันหรือเกือบทุกวัน</FormLabel>
-                                                    </FormItem>
-                                                </RadioGroup>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
 
-                                <FormField
-                                    control={form.control}
-                                    name="bikeWalkFrequency"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel>คุณเดินหรือปั่นจักรยานแทนการใช้ยานพาหนะบ่อยแค่ไหน?</FormLabel>
-                                            <FormControl>
-                                                <RadioGroup
-                                                    onValueChange={(value) => {
-                                                        field.onChange(value);
-                                                        clearFieldError('bikeWalkFrequency');
-                                                    }}
-                                                    defaultValue={field.value}
-                                                    className="flex flex-col space-y-1"
-                                                >
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="never" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ไม่เคยหรือแทบไม่เคย</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="occasionally" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">บางครั้ง (1-3 วันต่อเดือน)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="regularly" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">เป็นประจำ (1-3 วันต่อสัปดาห์)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="daily" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ทุกวันหรือเกือบทุกวัน</FormLabel>
-                                                    </FormItem>
-                                                </RadioGroup>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
                             </TabsContent>
 
-                            <TabsContent value="food" className="space-y-6">
+                            <TabsContent value="motorbike" className="space-y-6">
                                 <FormField
                                     control={form.control}
-                                    name="dietType"
+                                    name="use_motorcycle_to_day"
                                     render={({ field }) => (
                                         <FormItem className="space-y-3">
-                                            <FormLabel>อาหารของคุณเป็นแบบใด?</FormLabel>
+                                            <FormLabel>วันนี้คุณได้เดินทางด้วยรถจักรยานยนต์หรือไม่?</FormLabel>
                                             <FormControl>
                                                 <RadioGroup
                                                     onValueChange={(value) => {
                                                         field.onChange(value);
-                                                        clearFieldError('dietType');
+                                                        clearFieldError('use_motorcycle_to_day');
                                                     }}
-                                                    defaultValue={field.value}
                                                     className="flex flex-col space-y-1"
                                                 >
                                                     <FormItem className="flex items-center space-x-3 space-y-0">
                                                         <FormControl>
-                                                            <RadioGroupItem value="vegan" />
+                                                            <RadioGroupItem value="yes" />
                                                         </FormControl>
-                                                        <FormLabel className="font-normal">วีแกน (ไม่มีผลิตภัณฑ์จากสัตว์)</FormLabel>
+                                                        <FormLabel className="font-normal">ใช่</FormLabel>
                                                     </FormItem>
                                                     <FormItem className="flex items-center space-x-3 space-y-0">
                                                         <FormControl>
-                                                            <RadioGroupItem value="vegetarian" />
+                                                            <RadioGroupItem value="no" />
                                                         </FormControl>
-                                                        <FormLabel className="font-normal">มังสวิรัติ (ไม่มีเนื้อสัตว์ แต่รวมถึงนม/ไข่)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="pescatarian" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">เพสคาทาเรียน (มังสวิรัติรวมถึงปลา)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="flexitarian" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">เฟล็กซิทาเรียน (ส่วนใหญ่เป็นพืช แต่มีเนื้อสัตว์บางครั้ง)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="omnivore" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ออมนิวอร์ (บริโภคเนื้อสัตว์เป็นประจำ)</FormLabel>
+                                                        <FormLabel className="font-normal">ไม่</FormLabel>
                                                     </FormItem>
                                                 </RadioGroup>
                                             </FormControl>
@@ -626,252 +539,310 @@ export default function CalculatorNewForm() {
                                     )}
                                 />
 
-                                <FormField
-                                    control={form.control}
-                                    name="localFoodPercentage"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>เปอร์เซ็นต์ของอาหารที่มาจากท้องถิ่น: {field.value}%</FormLabel>
-                                            <FormControl>
-                                                <Slider
-                                                    min={0}
-                                                    max={100}
-                                                    step={1}
-                                                    defaultValue={[field.value]}
-                                                    onValueChange={(vals) => {
-                                                        field.onChange(vals[0]);
-                                                        clearFieldError('localFoodPercentage');
-                                                    }}
-                                                    className="w-full"
-                                                />
-                                            </FormControl>
-                                            <FormDescription>
-                                                ประมาณเปอร์เซ็นต์ของอาหารที่คุณบริโภคซึ่งมาจากท้องถิ่น (ภายใน 100 กม.)
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                {form.watch('use_motorcycle_to_day') === "yes" && (
+                                    <>
+                                        <FormField
+                                            control={form.control}
+                                            name="motorcycle_brand"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>แบรนด์รถจักรยานยนต์</FormLabel>
+                                                    <FormControl>
+                                                        <Select value={field.value} onValueChange={(v) => {
+                                                            field.onChange(v)
+                                                            loadMotorcycledModels(v)
+                                                        }}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="เลือกแบรนด์รถจักรยานยนต์" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {
+                                                                    motorcyleBrandList.map((car) => (
+                                                                        <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
+                                                                    ))
+                                                                }
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </FormControl>
+                                                </FormItem>
 
-                                <FormField
-                                    control={form.control}
-                                    name="foodWasteFrequency"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel>คุณทิ้งอาหารที่ไม่ได้กินบ่อยแค่ไหน?</FormLabel>
-                                            <FormControl>
-                                                <RadioGroup
-                                                    onValueChange={(value) => {
-                                                        field.onChange(value);
-                                                        clearFieldError('foodWasteFrequency');
-                                                    }}
-                                                    defaultValue={field.value}
-                                                    className="flex flex-col space-y-1"
-                                                >
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="never" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ไม่เคยหรือแทบไม่เคย</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="sometimes" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">บางครั้ง</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="often" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">บ่อยครั้ง</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="very_often" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">บ่อยมาก</FormLabel>
-                                                    </FormItem>
-                                                </RadioGroup>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </TabsContent>
+                                            )}
+                                        />
 
-                            <TabsContent value="lifestyle" className="space-y-6">
-                                <FormField
-                                    control={form.control}
-                                    name="shoppingFrequency"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel>คุณมีพฤติกรรมการซื้อของที่ไม่ใช่อาหารอย่างไร?</FormLabel>
-                                            <FormControl>
-                                                <RadioGroup
-                                                    onValueChange={(value) => {
-                                                        field.onChange(value);
-                                                        clearFieldError('shoppingFrequency');
-                                                    }}
-                                                    defaultValue={field.value}
-                                                    className="flex flex-col space-y-1"
-                                                >
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="minimal" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">น้อยที่สุด (ซื้อเฉพาะสิ่งที่จำเป็น)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="moderate" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">ปานกลาง (ซื้อของเป็นครั้งคราว)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="frequent" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">บ่อยครั้ง (ซื้อของเป็นประจำ)</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="extensive" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">มากมาย (การช้อปปิ้งเป็นงานอดิเรก)</FormLabel>
-                                                    </FormItem>
-                                                </RadioGroup>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                        {form.watch('motorcycle_brand') && (
+                                            <FormField
+                                                control={form.control}
+                                                name="motorcycle_model"
+                                                render={({ field }) => (
 
-                                <FormField
-                                    control={form.control}
-                                    name="recyclingHabit"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel>คุณรีไซเคิลบ่อยแค่ไหน?</FormLabel>
-                                            <FormControl>
-                                                <RadioGroup
-                                                    onValueChange={(value) => {
-                                                        field.onChange(value);
-                                                        clearFieldError('recyclingHabit');
-                                                    }}
-                                                    defaultValue={field.value}
-                                                    className="flex flex-col space-y-1"
-                                                >
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                                    <FormItem>
+                                                        <FormLabel>รุ่นรถจักรยานยนต์</FormLabel>
                                                         <FormControl>
-                                                            <RadioGroupItem value="never" />
+                                                            <Select value={field.value} onValueChange={(v) => {
+                                                                field.onChange(v)
+                                                            }}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="เลือกรุ่นรถจักรยานยนต์" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {
+                                                                        motorcyleModelList.map((car) => (
+                                                                            <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
+                                                                        ))
+                                                                    }
+                                                                </SelectContent>
+                                                            </Select>
                                                         </FormControl>
-                                                        <FormLabel className="font-normal">ไม่เคยหรือแทบไม่เคย</FormLabel>
                                                     </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="sometimes" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">บางครั้ง</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="often" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">บ่อยครั้ง</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="always" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">เสมอหรือเกือบเสมอ</FormLabel>
-                                                    </FormItem>
-                                                </RadioGroup>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                                )}
+                                            />
+                                        )}
+
+                                        <FormField
+                                            control={form.control}
+                                            name="motorcycle_used_km"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>ระยะทางที่คุณเดินทาง</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type="number"
+                                                            min={0}
+                                                            {...field}
+                                                            onChange={(e) => {
+                                                                field.onChange(Number(e.target.value));
+                                                                clearFieldError('motorcycle_used_km');
+                                                            }}
+                                                            onFocus={() => clearFieldError('motorcycle_used_km')}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </>
+                                )}
+
+
                             </TabsContent>
 
                             <TabsContent value="travel" className="space-y-6">
-                                <div className="space-y-1 mb-4">
-                                    <h3 className="text-lg font-medium">เที่ยวบินประจำปี</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        ป้อนจำนวนเที่ยวบินโดยประมาณที่คุณเดินทางในแต่ละปี
-                                    </p>
-                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="use_car_to_day"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-3">
+                                            <FormLabel>วันนี้คุณได้เดินทางด้วยรถยนต์หรือไม่?</FormLabel>
+                                            <FormControl>
+                                                <RadioGroup
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        clearFieldError('use_car_to_day');
+                                                    }}
+                                                    className="flex flex-col space-y-1"
+                                                >
+                                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="yes" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">ใช่</FormLabel>
+                                                    </FormItem>
+                                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="no" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">ไม่</FormLabel>
+                                                    </FormItem>
+                                                </RadioGroup>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="flightsShort"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>เที่ยวบินระยะสั้น (ต่ำกว่า 3 ชั่วโมง)</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        {...field}
-                                                        onChange={(e) => {
-                                                            field.onChange(Number(e.target.value));
-                                                            clearFieldError('flightsShort');
-                                                        }}
-                                                        onFocus={() => clearFieldError('flightsShort')}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                {form.watch('use_car_to_day') === "yes" && (
+                                    <>
+                                        <FormField
+                                            control={form.control}
+                                            name="car_brand"
+                                            render={({ field }) => (
+                                                <Select value={field.value} onValueChange={(v) => {
+                                                    field.onChange(v)
+                                                    loadCardModels(v)
+                                                }}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="เลือกแบรนด์รถยนต์" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {
+                                                            carBrandList.map((car) => (
+                                                                <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
+                                                            ))
+                                                        }
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="flightsMedium"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>เที่ยวบินระยะกลาง (3-6 ชั่วโมง)</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        {...field}
-                                                        onChange={(e) => {
-                                                            field.onChange(Number(e.target.value));
-                                                            clearFieldError('flightsMedium');
-                                                        }}
-                                                        onFocus={() => clearFieldError('flightsMedium')}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
+                                        {form.watch('car_brand') && (
+                                            <FormField
+                                                control={form.control}
+                                                name="car_model"
+                                                render={({ field }) => (
+                                                    <Select value={field.value} onValueChange={(v) => {
+                                                        field.onChange(v)
+                                                    }}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="เลือกรุ่นรถยนต์" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {
+                                                                carModelList.map((car) => (
+                                                                    <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
+                                                                ))
+                                                            }
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
                                         )}
-                                    />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="flightsLong"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>เที่ยวบินระยะไกล (มากกว่า 6 ชั่วโมง)</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        {...field}
-                                                        onChange={(e) => {
-                                                            field.onChange(Number(e.target.value));
-                                                            clearFieldError('flightsLong');
-                                                        }}
-                                                        onFocus={() => clearFieldError('flightsLong')}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
+                                        <FormField
+                                            control={form.control}
+                                            name="car_used_km"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>ระยะทางที่คุณเดินทาง</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type="number"
+                                                            min={0}
+                                                            {...field}
+                                                            onChange={(e) => {
+                                                                field.onChange(Number(e.target.value));
+                                                                clearFieldError('car_used_km');
+                                                            }}
+                                                            onFocus={() => clearFieldError('car_used_km')}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </>
+                                )}
+
+
+                            </TabsContent>
+
+                            
+                            <TabsContent value="piblic_transport" className="space-y-6">
+                                <FormField
+                                    control={form.control}
+                                    name="use_public_transport"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-3">
+                                            <FormLabel>วันนี้คุณได้เดินทางด้วยรถประจำทางหรือไม่?</FormLabel>
+                                            <FormControl>
+                                                <RadioGroup
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        clearFieldError('use_car_to_day');
+                                                    }}
+                                                    className="flex flex-col space-y-1"
+                                                >
+                                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="yes" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">ใช่</FormLabel>
+                                                    </FormItem>
+                                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="no" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">ไม่</FormLabel>
+                                                    </FormItem>
+                                                </RadioGroup>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {form.watch('use_car_to_day') === "yes" && (
+                                    <>
+                                        <FormField
+                                            control={form.control}
+                                            name="car_brand"
+                                            render={({ field }) => (
+                                                <Select value={field.value} onValueChange={(v) => {
+                                                    field.onChange(v)
+                                                    loadCardModels(v)
+                                                }}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="เลือกแบรนด์รถยนต์" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {
+                                                            carBrandList.map((car) => (
+                                                                <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
+                                                            ))
+                                                        }
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+
+                                        {form.watch('car_brand') && (
+                                            <FormField
+                                                control={form.control}
+                                                name="car_model"
+                                                render={({ field }) => (
+                                                    <Select value={field.value} onValueChange={(v) => {
+                                                        field.onChange(v)
+                                                    }}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="เลือกรุ่นรถยนต์" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {
+                                                                carModelList.map((car) => (
+                                                                    <SelectItem value={`${car.id}`}>{car.name}</SelectItem>
+                                                                ))
+                                                            }
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
                                         )}
-                                    />
-                                </div>
+
+                                        <FormField
+                                            control={form.control}
+                                            name="car_used_km"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>ระยะทางที่คุณเดินทาง</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type="number"
+                                                            min={0}
+                                                            {...field}
+                                                            onChange={(e) => {
+                                                                field.onChange(Number(e.target.value));
+                                                                clearFieldError('car_used_km');
+                                                            }}
+                                                            onFocus={() => clearFieldError('car_used_km')}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </>
+                                )}
+
+
                             </TabsContent>
                         </Tabs>
 
