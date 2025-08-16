@@ -16,7 +16,7 @@ interface HistoryData {
     month: HistoryCalculator[],
     all: HistoryCalculator[]
 }
-export function PersonStanding({ session, logout }: { session: any; logout: () => void }) {
+export function PersonStanding({ session }: { session: any; logout: () => void }) {
     const [loading, setLoading] = useState(true);
 
     const [monthlyData, setMonthlyData] = useState<{ month: string, emissions: number }[]>([])

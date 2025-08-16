@@ -14,7 +14,6 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
@@ -35,7 +34,7 @@ const registerSchema = z.object({
     confirmPassword: z.string(),
     phone: z.string().min(10, 'เบอร์โทรศัพท์ไม่ถูกต้อง'),
     address: z.string().min(1, 'กรุณากรอกที่อยู่'),
-    city: z.string().min(1, 'กรุณากรอกเมือง'),
+    city: z.string().min(1, 'กรุณากรอกอำเภอ'),
     state: z.string().min(1, 'กรุณากรอกจังหวัด'),
     zipCode: z.string().min(5, 'รหัสไปรษณีย์ไม่ถูกต้อง'),
     organizationId: z.string(),
@@ -45,7 +44,7 @@ const registerSchema = z.object({
     org_email: z.string().email('กรุณากรอกอีเมลให้ถูกต้อง'),
     org_phone: z.string().min(10, 'เบอร์โทรศัพท์ไม่ถูกต้อง'),
     org_address: z.string().min(1, 'กรุณากรอกที่อยู่'),
-    org_city: z.string().min(1, 'กรุณากรอกเมือง'),
+    org_city: z.string().min(1, 'กรุณากรอกอำเภอ'),
     org_state: z.string().min(1, 'กรุณากรอกจังหวัด'),
     org_zipCode: z.string().min(5, 'รหัสไปรษณีย์ไม่ถูกต้อง'),
     org_logo: z.any().optional(),
@@ -143,7 +142,8 @@ export default function RegisterForm() {
     const registrationType = registerType == 1 ? "person" : "org"
 
     const totalSteps = registrationType === 'person' ? 5 : 4;
-    const progress = ((currentStep + 1) / totalSteps) * 100;
+    const safeCurrentStep = typeof currentStep === 'number' ? currentStep : 0;
+    const progress = totalSteps > 0 ? ((safeCurrentStep + 1) / totalSteps) * 100 : 0;
     const [nextBtnMessage, setNextBtnMessage] = useState("")
     const [modalOpen, setModalOpen] = useState(false);
     const [modalData, setModalData] = useState<{
@@ -725,9 +725,9 @@ export default function RegisterForm() {
                                 name="city"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>เมือง</FormLabel>
+                                        <FormLabel>อำเภอ</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="กรอกเมือง" {...field} value={city} onChange={(e) => {
+                                            <Input placeholder="กรอกอำเภอ" {...field} value={city} onChange={(e) => {
                                                 setCity(e.target.value)
                                             }} />
                                         </FormControl>
@@ -808,9 +808,9 @@ export default function RegisterForm() {
                                 name="org_city"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>เมือง</FormLabel>
+                                        <FormLabel>อำเภอ</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="กรอกเมือง" {...field} value={org_city} onChange={(e) => {
+                                            <Input placeholder="กรอกอำเภอ" {...field} value={org_city} onChange={(e) => {
                                                 setOrg_City(e.target.value)
                                             }} />
                                         </FormControl>
@@ -1096,7 +1096,12 @@ export default function RegisterForm() {
                             <span>ขั้นตอนที่ {currentStep + 1} จาก {totalSteps}</span>
                             <span>{Math.round(progress)}% เสร็จสิ้น</span>
                         </div>
-                        <Progress value={progress} className="h-2" />
+                        <Progress
+                            value={typeof progress === 'number' && isFinite(progress) ? Math.min(progress, 100) : 0}
+                            max={100}
+                            className="h-2"
+                        />
+
                     </div>
 
                     {renderStep()}

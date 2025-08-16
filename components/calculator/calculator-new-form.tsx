@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { Home, Car, Utensils, ShoppingBag, Plane } from 'lucide-react';
+import { Home, Car, Utensils, ShoppingBag, Plane, Bike, TramFront } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { calculatorFormSchema } from '@/lib/schemas/calculator-schema';
 import CalculatorResults from '@/components/calculator/calculator-results';
@@ -30,8 +30,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 const formTabs = [
     { id: 'home', label: 'บ้าน', icon: <Home className="mr-2 h-4 w-4" /> },
     { id: 'car', label: 'การใช้รถยนต์', icon: <Car className="mr-2 h-4 w-4" /> },
-    { id: 'motorbike', label: 'การใช้รถมอเตอร์ไซค์', icon: <Utensils className="mr-2 h-4 w-4" /> },
-    { id: 'public', label: 'การใช้รถสาธารณะ', icon: <ShoppingBag className="mr-2 h-4 w-4" /> },
+    { id: 'motorbike', label: 'การใช้รถมอเตอร์ไซค์', icon: <Bike className="mr-2 h-4 w-4" /> },
+    { id: 'public', label: 'การใช้รถสาธารณะ', icon: <TramFront className="mr-2 h-4 w-4" /> },
     { id: 'travel', label: 'ท่องเที่ยว', icon: <Plane className="mr-2 h-4 w-4" /> },
 ];
 
@@ -301,7 +301,7 @@ export default function CalculatorNewForm() {
                                         name="home_electricity_units_used"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>หน่วยการใช้ไฟฟ้าของคุณวันนี้</FormLabel>
+                                                <FormLabel>หน่วยการใช้ไฟฟ้าของคุณวันนี้ (กิโลกรัม)</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="number"
@@ -326,7 +326,7 @@ export default function CalculatorNewForm() {
                                     name="home_garbage_is_thrown_away"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>ปริมาณการทิ้งขยะวันนี้</FormLabel>
+                                            <FormLabel>ปริมาณการทิ้งขยะวันนี้ (กิโลกรัม)</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="number"
@@ -349,7 +349,7 @@ export default function CalculatorNewForm() {
                                     name="home_wood_burning_frequency"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>ปริมาณการเผาไม้วันนี้</FormLabel>
+                                            <FormLabel>ปริมาณการเผาไม้วันนี้ (กิโลกรัม)</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="number"

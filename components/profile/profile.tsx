@@ -159,7 +159,7 @@ export default function ProfilePage() {
                   <div className="text-center">
                     <div className="relative w-32 h-32 mx-auto mb-4">
                       <Image
-                        src={org?.org_logo || '/images/org_default_logo.png'}
+                        src={org?.org_logo || '/images/unknown.png'}
                         alt="Organization Logo"
                         fill
                         className="rounded-full object-cover"

@@ -40,11 +40,18 @@ export default function SessionProvider({ children }: { children: React.ReactNod
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
+        // แปลง base64url -> base64
+        const base64 = token.split(".")[1]
+          .replace(/-/g, "+")
+          .replace(/_/g, "/")
+          .padEnd(token.split(".")[1].length + (4 - token.split(".")[1].length % 4) % 4, "=");
+
+        const payload = JSON.parse(atob(base64));
+
         const currentTime = Math.floor(Date.now() / 1000);
         if (payload.exp < currentTime) {
           console.log("Token expired, logging out");
-          // handleLogout();
+          handleLogout();
         } else {
           const userData = JSON.parse(localStorage.getItem("user") || "{}");
           setSession({
@@ -54,11 +61,12 @@ export default function SessionProvider({ children }: { children: React.ReactNod
         }
       } catch (error) {
         console.error("Invalid token", error);
-        // handleLogout();
+        handleLogout();
       }
     }
     setLoading(false);
   }, []);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");

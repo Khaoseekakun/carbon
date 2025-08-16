@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import CalculatorForm from '@/components/calculator/calculator-form';
 import CalculatorNewForm from '@/components/calculator/calculator-new-form';
 export const metadata: Metadata = {
   title: 'Carbon Footprint Calculator',

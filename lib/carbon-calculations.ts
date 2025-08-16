@@ -190,6 +190,3 @@ export async function calculateTravelEmissions(data: CalculatorFormValues): Prom
     return 0;
   }
 }
-// https://carbon.sinsamuth.shop/api/car/brand
-// https://carbon.sinsamuth.shop/api/car/brand/1
-// https://carbon.sinsamuth.shop/api/car/brand/1/4

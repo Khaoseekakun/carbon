@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -160,7 +159,7 @@ export default function TipsPage() {
                   <span>วันที่ 1</span>
                   <span>วันที่ 7</span>
                 </div>
-                <Progress value={30} className="h-2" />
+                <Progress value={30} max={100} className="h-2" />
               </div>
               <div className="flex flex-wrap gap-2 mb-6">
                 <Badge variant="secondary">วันที่ 1 ✅</Badge>
