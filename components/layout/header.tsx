@@ -22,11 +22,7 @@ const Header = () => {
   }, []);
 
 
-  const { session, logout } = useSession();
-  const [loading, setLoading] = useState(true)
-  useEffect(() => {
-    setLoading(false)
-  }, [session])
+  const { session, logout, loading } = useSession();
 
   const navItems = [
     { name: 'หน้าแรก', href: '/' },
