@@ -301,7 +301,7 @@ export default function CalculatorNewForm() {
                                         name="home_electricity_units_used"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>หน่วยการใช้ไฟฟ้าของคุณวันนี้ (กิโลกรัม)</FormLabel>
+                                                <FormLabel>หน่วยการใช้ไฟฟ้าของคุณวันนี้ (กิโลวัตต์)</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="number"

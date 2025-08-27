@@ -314,7 +314,7 @@ export default function CalculatorResults({ data, onReset }: CalculatorResultsPr
       </CardContent>
 
       {
-        session && (
+        (session && session.isVerified == true && session.type == "person") && (
           <div className="flex flex-col md:flex-row justify-between items-center p-4 border-t bg-gray-50 dark:bg-gray-900/40 w-full">
             <div className="flex-1" />
             <div className="flex gap-2 w-full md:w-auto justify-center md:justify-end">

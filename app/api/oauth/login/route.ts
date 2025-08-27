@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
                         phone: getCustomer.phone,
                         picture: getCustomer.profilePicture,
                         type: "person",
+                        isVerified: getCustomer.isVerified
                     }, process.env.JSONWEBTOKEN_SECRET!, {
                         expiresIn: '30m'
                     })
@@ -60,7 +61,8 @@ export async function POST(req: NextRequest) {
                             picture: getCustomer.profilePicture,
                             token: token,
                             type: "person",
-                            username: getCustomer.username
+                            username: getCustomer.username,
+                            isVerified: getCustomer.isVerified
                         },
                         message: "เข้าสู่ระบบสำเร็จ"
                     })

@@ -25,7 +25,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 
-import { Search, Edit, Trash2, Users } from 'lucide-react';
+import { Search, Edit, Trash2, Users, CheckCheck } from 'lucide-react';
 import { CustomerFormat, useLoadMemberOrganization } from './manage-profile';
 import { useSession } from '../providers/SessionProvider';
 import axios from 'axios';
@@ -34,7 +34,9 @@ import axios from 'axios';
 export default function OrganizationMembers() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
     const [memberToDelete, setMemberToDelete] = useState<CustomerFormat | null>(null);
+    const [memberToAccept, setMemberToAccept] = useState<CustomerFormat | null>(null);
 
     const { session } = useSession();
     const [statusFilter, setStatusFilter] = useState<'all' | 'updated' | 'notUpdated'>('all');
@@ -90,6 +92,17 @@ export default function OrganizationMembers() {
         setIsDeleteDialogOpen(true);
     };
 
+    const acceptMember = (member: CustomerFormat) => {
+        setMemberToAccept(member);
+        setIsAcceptDialogOpen(true);
+    }
+
+    const confirmAccept = () => {
+        setIsAcceptDialogOpen(false);
+        AcceptUserToOrganization(memberToAccept?.id!);
+        setMemberToAccept(null);
+    };
+
     const confirmDelete = () => {
         setIsDeleteDialogOpen(false);
         deleteUserFormOrganization(memberToDelete?.id!);
@@ -101,14 +114,34 @@ export default function OrganizationMembers() {
             const response = await axios.delete(`/api/organization/${session?.id}/members/${memberId}`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.token!}`, 
+                    'Authorization': `Bearer ${session?.token!}`,
                 },
             });
             if (response.data.status) {
-                memberData = memberData.filter(member => member.id !== memberId); 
-                window.location.reload(); // Refresh the page to reflect changes
+                memberData = memberData.filter(member => member.id !== memberId);
+                window.location.reload();
             } else {
-                
+
+            }
+        }
+        catch (error) {
+            console.error('Error deleting member:', error);
+        }
+    }
+
+
+    const AcceptUserToOrganization = async (memberId: number) => {
+        try {
+            const response = await axios.put(`/api/organization/${session?.id}/members/${memberId}`,null, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.token!}`,
+                },
+            });
+            if (response.data.status) {
+                window.location.href = window.location.href
+            } else {
+                console.log('update error')
             }
         }
         catch (error) {
@@ -160,46 +193,98 @@ export default function OrganizationMembers() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredMembers.map((member) => (
-                    <Card
-                        key={member.id}
-                        className="transition-all duration-200 hover:shadow-md border-green-100 dark:border-green-900/30"
-                    >
-                        <CardContent className="p-4">
-                            <div className="flex items-center space-x-4">
-                                <div className="relative w-12 h-12">
-                                    <Image
-                                        src={member.profilePicture || '/images/user_unknown.jpg'}
-                                        alt={member.username}
-                                        fill
-                                        className="rounded-full object-cover"
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-medium">{member.username}</h3>
-                                    <div className="flex items-center space-x-2 text-sm">
-                                        <span className={hasUpdatedToday(member) ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
-                                            {hasUpdatedToday(member) ? '✅ อัปเดตแล้ววันนี้' : '⛔ ยังไม่ได้อัปเดต'}
-                                        </span>
+                {filteredMembers.map((member) => {
+                    return member.isVerified == true ? (
+                        <Card
+                            key={member.id}
+                            className="transition-all duration-200 hover:shadow-md border-green-100 dark:border-green-900/30"
+                        >
+                            <CardContent className="p-4">
+                                <div className="flex items-center space-x-4">
+                                    <div className="relative w-12 h-12">
+                                        <Image
+                                            src={member.profilePicture || '/images/user_unknown.jpg'}
+                                            alt={member.username}
+                                            fill
+                                            className="rounded-full object-cover"
+                                        />
                                     </div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        อัปเดตล่าสุด {formatDate(getLastUpdate(member))}
-                                    </p>
+                                    <div className="flex-1">
+                                        <h3 className="font-medium">{member.username}</h3>
+                                        <div className="flex items-center space-x-2 text-sm">
+                                            <span className={hasUpdatedToday(member) ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                                                {hasUpdatedToday(member) ? '✅ อัปเดตแล้ววันนี้' : '⛔ ยังไม่ได้อัปเดต'}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            อัปเดตล่าสุด {formatDate(getLastUpdate(member))}
+                                        </p>
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => handleDelete(member)}
+                                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => handleDelete(member)}
-                                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <Card
+                            key={member.id}
+                            className="transition-all duration-200 hover:shadow-md border-green-100 dark:border-green-900/30"
+                        >
+                            <CardContent className="p-4">
+                                <div className="flex items-center space-x-4">
+                                    <div className="relative w-12 h-12">
+                                        <Image
+                                            src={member.profilePicture || '/images/user_unknown.jpg'}
+                                            alt={member.username}
+                                            fill
+                                            className="rounded-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-medium">{member.username}</h3>
+                                        <div className="flex items-center space-x-2 text-sm">
+                                            <span className='text-red-600 dark:text-red-400'>
+                                                ⛔ สมาชิกที่ยังไม่ได้ถูกตอบรับ
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            อัปเดตล่าสุด {formatDate(getLastUpdate(member))}
+                                        </p>
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => handleDelete(member)}
+                                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => acceptMember(member)}
+                                            className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                                        >
+                                            <CheckCheck className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                            </CardContent>
+                        </Card>
+                    )
+                }
+
+                )}
             </div>
 
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -217,6 +302,26 @@ export default function OrganizationMembers() {
                             className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
                         >
                             ยืนยันการลบ
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={isAcceptDialogOpen} onOpenChange={setIsAcceptDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>คุณแน่ใจหรือไม่?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            คุณต้องการเพิ่ม {memberToDelete?.username} เข้ามาภายในองค์กรใช่หรือไม่
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmAccept}
+                            className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
+                        >
+                            ใช่
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

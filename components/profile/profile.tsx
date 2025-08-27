@@ -47,7 +47,6 @@ export default function ProfilePage() {
                 'Content-Type': "application/json"
               }
             })
-            console.log(org_data)
             if (org_data.data.status) {
               setOrg(org_data.data.organization)
             } else {
@@ -89,6 +88,23 @@ export default function ProfilePage() {
     );
   }, [org])
 
+  if (session && session.isVerified == false && session.type == "person") return (
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 flex items-center justify-center">
+      <Card className="max-w-md w-full">
+        <CardContent className="text-center p-6">
+          <h2 className="text-2xl font-bold mb-4">บัญชีของคุณอยู่ระหว่างการรอตอบรับ</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">โปรดรอผู้ดูแลองค์กรตอบรับคำขอของคุณ</p>
+          <button
+            onClick={() => window.location.href = "/"}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+          >
+            ไปหน้าแรก
+          </button>
+        </CardContent>
+      </Card>
+    </div>
+  )
+
   if (loading) return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="flex flex-col items-center">
@@ -100,6 +116,9 @@ export default function ProfilePage() {
       </div>
     </div>
   )
+
+
+
 
   if (org == null && session?.type != "organization") return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 flex items-center justify-center">
@@ -170,11 +189,11 @@ export default function ProfilePage() {
                     <div className="space-y-4">
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">คาร์บอนฟุตพริ้นท์รวมวันนี้</p>
-                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">{org?.TotalCarbonFootprintValueToday} kg CO₂</p>
+                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">{Number(org?.TotalCarbonFootprintValueToday).toFixed(2)} kg CO₂</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">คาร์บอนฟุตพริ้นท์รวมเดือนนี้</p>
-                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">{org?.TotalCarbonFootprintHistoryMonth} kg CO₂</p>
+                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">{Number(org?.TotalCarbonFootprintHistoryMonth).toFixed(2)} kg CO₂</p>
                       </div>
                     </div>
                   </div>

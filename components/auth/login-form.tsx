@@ -88,7 +88,8 @@ export default function LoginForm() {
             phone: userData.phone,
             picture: userData.picture,
             type: userData.type,
-            username: userData.username
+            username: userData.username,
+            isVerified : userData.isVerified
           }));
 
           setModalData({

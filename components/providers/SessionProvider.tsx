@@ -12,7 +12,8 @@ interface Session {
   phone?: string;
   picture?: string;
   token: string;
-  type: 'person' | 'organization'
+  type: 'person' | 'organization',
+  isVerified : boolean
 }
 
 interface SessionContextType {

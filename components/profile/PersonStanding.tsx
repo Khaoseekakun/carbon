@@ -101,12 +101,12 @@ export function PersonStanding({ session }: { session: any; logout: () => void }
                         <div className="space-y-4">
                             <div>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">คาร์บอนฟุตพริ้นท์วันนี้</p>
-                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{historyData.today.reduce((acc, curr) => acc + curr.result, 0)} kg CO₂</p>
+                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{historyData.today.reduce((acc, curr) => acc + curr.result, 0).toFixed(2)} kg CO₂</p>
                                 <p className="text-sm font-bold text-red-600 dark:text-red-400">{historyData.today.reduce((acc, curr) => acc + curr.result, 0) == 0 ? "วันนี้ยังไม่ได้บันทึกข้อมูล" : ""}</p>
                             </div>
                             <div>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">คาร์บอนฟุตพริ้นท์เดือนนี้</p>
-                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{historyData.month.reduce((acc, curr) => acc + curr.result, 0)} kg CO₂</p>
+                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{historyData.month.reduce((acc, curr) => acc + curr.result, 0).toFixed(2)} kg CO₂</p>
                             </div>
 
                             <Button asChild className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
